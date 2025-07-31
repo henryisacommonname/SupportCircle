@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:draft_1/Screens/login_screen.dart';
-void main() {
-  runApp(const MyApp());
+import 'Services/auth_gate.dart';
+import 'firebase_options.dart'; // make sure you generated this via flutterfire CLI
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget{
-  const MyApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
-  Widget build(BuildContext context){
-  return MaterialApp(
-    title: "Henrysproject",
-    theme: ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      useMaterial3: true,
-    ),
-    home: loginscreen(
-      onRegisterTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('register')));
-      },
-    ),
-  );
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Henry App',
+      theme: ThemeData(primarySwatch: Colors.indigo),
+      home: AuthGate(),
+    );
   }
 }

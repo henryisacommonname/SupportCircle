@@ -1,75 +1,79 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../Services/auth_service.dart';
 
-class loginscreen extends StatefulWidget {
-  // final VoidCallback onRegisterTap;
-  // TODO const LoginScreen ({required this.onRegisterTap});
-  final VoidCallback onRegisterTap;
-  const loginscreen({Key? key,required this.onRegisterTap}) : super(key: key);
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<loginscreen> {
-  final _auth = AuthService();
-  final TextEditingController _emailCtrl = TextEditingController();
-  final TextEditingController _passCtrl = TextEditingController();
-  String? _errormessage;
-  bool _isloading=false;
+class _LoginScreenState extends State<LoginScreen> {
+  // final variables
+  final AuthService _authService = AuthService();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> _sign_in() async {
+  String? _errorMessage;
+  bool _isloading = false;
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
     setState(() {
-      _isloading=true;
-      _errormessage=null;
+      _isloading = true;
+      _errorMessage = null;
     });
 
     try {
-      await _auth.signInWithEmail(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text.trim(),
-      );
-    } on FirebaseAuthException catch (e) {
-      setState(() => _errormessage = e.message);
+      await _authService.signInWithEmail(email, password);
+      // Authgate will auto-redirect
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Login failed: ${e.toString()}";
+      });
+    } finally {
+      setState(() => _isloading = false);
     }
   }
 
-  @override
-  Widget build(BuildContext ctx) => Scaffold(
-    appBar: AppBar(title: const Text("Log In")),
-    body: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          TextField(
-            controller: _emailCtrl,
-            decoration: const InputDecoration(
-              labelText: "Email Address",
-              prefixIcon: Icon(Icons.email),
-            ),
-          ),
-          TextField(
-            controller: _passCtrl,
-            decoration: const InputDecoration(
-              labelText: "Password",
-              prefixIcon: Icon(Icons.lock),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-              width:12,
-              //TODO sign-in
-              child: ElevatedButton(
-                  onPressed: _sign_in,
-                  child: const Text("Sign In"))
-          ),
-          TextButton(
-              onPressed: widget.onRegisterTap,
-              child: const Text("Register"))
-        ],
+  void _goToRegister() {
+    Navigator.pushNamed(context, '/register');
+  }
 
-        //sign-in button
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Login')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: "Email"),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _passwordController,
+              decoration: const InputDecoration(labelText: 'Password'),
+              obscureText: true,
+            ),
+            const SizedBox(height: 20),
+            if (_errorMessage != null)
+              Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+            _isloading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(onPressed: _login, child: const Text('Login')),
+            TextButton(
+              onPressed: _goToRegister,
+              child: const Text("Don't have an account? Register"),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
