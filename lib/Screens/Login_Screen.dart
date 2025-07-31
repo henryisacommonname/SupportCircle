@@ -39,7 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _goToRegister() {
-    Navigator.pushNamed(context, '/register');
+    Navigator.pushNamed(context, '/Register');
   }
 
   Widget build(BuildContext context) {

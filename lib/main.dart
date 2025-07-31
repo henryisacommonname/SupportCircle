@@ -1,3 +1,5 @@
+import 'package:draft_1/Screens/Login_Screen.dart';
+import 'package:draft_1/Screens/Register_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'Services/auth_gate.dart';
@@ -16,6 +18,10 @@ class MyApp extends StatelessWidget {
       title: 'Henry App',
       theme: ThemeData(primarySwatch: Colors.indigo),
       home: AuthGate(),
+      routes: {
+        "/login": (context) => LoginScreen(),
+        "/Register": (context) => RegisterScreen(),
+      },
     );
   }
 }
