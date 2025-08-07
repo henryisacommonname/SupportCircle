@@ -20,7 +20,23 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("SupportCircle"),
+        actions: [
+          IconButton(
+            onPressed: () => AuthService().signOut(),
+            icon: Icon(Icons.logout_rounded),
+          ),
+        ],
+      ),
+      body: pages [index],
       bottomNavigationBar: BottomNavigationBar(
+        currentIndex: index,
+        onTap: (int idx){
+          setState(() => index = idx);
+
+          },);
+        },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
