@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Services/auth_service.dart';
+import '../Core/Services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,6 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.pushNamed(context, '/Register');
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),

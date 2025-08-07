@@ -2,7 +2,7 @@ import 'package:draft_1/Screens/Login_Screen.dart';
 import 'package:draft_1/Screens/Register_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'Services/auth_gate.dart';
+import 'Core/Services/auth_gate.dart';
 import 'firebase_options.dart';
 
 void main() async {
