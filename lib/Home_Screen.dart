@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'Core/Services/auth_service.dart';
 
-class Home_Screen extends StatefulWidget {
-  const Home_Screen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
   @override
-  State<Home_Screen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<Home_Screen> {
+class _HomeScreenState extends State<HomeScreen> {
   int index = 0;
   static const List<Widget> pages = <Widget>[
     Center(child: Text("Welcome to SupportCircle")),

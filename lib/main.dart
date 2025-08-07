@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'Core/Services/auth_gate.dart';
 import 'firebase_options.dart';
+import 'Home_Screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
       routes: {
         "/login": (context) => LoginScreen(),
         "/Register": (context) => RegisterScreen(),
+        "/Home": (context) => HomeScreen(),
       },
     );
   }

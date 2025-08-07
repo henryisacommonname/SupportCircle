@@ -29,6 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signInWithEmail(email, password);
       // Authgate will auto-redirect
+      Navigator.of(context).pushReplacementNamed('/Home');
     } catch (e) {
       setState(() {
         _errorMessage = "Login failed: ${e.toString()}";
