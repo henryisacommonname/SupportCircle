@@ -34,9 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: index,
         onTap: (int idx){
           setState(() => index = idx);
-
-          },);
-        },
+          },
         items: [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
