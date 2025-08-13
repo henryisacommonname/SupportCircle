@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../Screens/Login_Screen.dart';
+import '/Home_Screen.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
@@ -27,10 +28,10 @@ class AuthGate extends StatelessWidget {
           );
         }
 
-        // User is signed in
-        // if (snapshot.hasData) {
-        //   return const HomeScreen();
-        // }
+
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
 
         // User is not signed in
         return LoginScreen();
