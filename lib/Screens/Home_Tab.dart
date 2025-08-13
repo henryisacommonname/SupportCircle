@@ -5,13 +5,14 @@ class HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: ListView(padding: const EdgeInsets.all(16), children: [
-        WelcomeCard(),
-        const SizedBox(height: 12),
-      ]),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [WelcomeCard(), const SizedBox(height: 12)],
+      ),
     );
   }
 }
+
 /*--- Components ---*/
 class WelcomeCard extends StatelessWidget {
   const WelcomeCard();
@@ -42,4 +43,54 @@ class WelcomeCard extends StatelessWidget {
   }
 }
 
-class QuickActionsQuotes
+class QuickActionsRow extends StatelessWidget {
+  const QuickActionsRow();
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: const [
+        Expanded(
+          child: QuickActionsCard(
+            title: 'AI Assistant',
+            subtitle: 'get real-time help',
+            QAIcon: Icons.smart_toy_outlined,
+            QAroute: '/assistant',
+          ),
+        ),
+
+        SizedBox(width: 12),
+        Expanded(
+          child: QuickActionsCard(
+            title: 'Emergency',
+            subtitle: 'Quick help access',
+            QAIcon: Icons.call,
+            QAroute: '/emergency',
+            emph: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class QuickActionsCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData QAIcon;
+  final String QAroute;
+  final bool emph;
+  const QuickActionsCard({
+    required this.title,
+    required this.subtitle,
+    required this.QAIcon,
+    required this.QAroute,
+    this.emph = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Scheme = Theme.of(context).colorScheme;
+    final bg = emph ? Scheme.errorContainer : Scheme.surface;
+    final fg = emph ? Scheme.onErrorContainer : Scheme.onSurface;
+  }
+}
