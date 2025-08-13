@@ -29,24 +29,28 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: pages [index],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (int idx){
-          setState(() => index = idx);
+      body: pages[index],
+      bottomNavigationBar: SafeArea(
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          currentIndex: index,
+          onTap: (int idx) {
+            setState(() => index = idx);
           },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.handyman),
-            label: "Training",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.question_answer),
-            label: "Support",
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.handyman),
+              label: "Training",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.question_answer),
+              label: "Support",
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          ],
+        ),
       ),
     );
   }
