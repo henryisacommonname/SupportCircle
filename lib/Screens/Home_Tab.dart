@@ -7,7 +7,8 @@ class HomeTab extends StatelessWidget {
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
-        children: [WelcomeCard(), const SizedBox(height: 12)],
+        children: [WelcomeCard(), const SizedBox(height: 12),
+        QuickActionsRow(), const SizedBox(height: 12)],
       ),
     );
   }
@@ -92,5 +93,39 @@ class QuickActionsCard extends StatelessWidget {
     final Scheme = Theme.of(context).colorScheme;
     final bg = emph ? Scheme.errorContainer : Scheme.surface;
     final fg = emph ? Scheme.onErrorContainer : Scheme.onSurface;
+
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => Navigator.of(context).pushNamed(QAroute),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(QAIcon, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(fontWeight: FontWeight.w700, color: fg),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: fg.withOpacity(0.7)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
