@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'Core/Services/auth_service.dart';
 import '/Screens/Home_Tab.dart';
+import 'screens/Profile_Tab.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,8 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeTab(),
     Center(child: Text("Supporting children and families together")),
     Center(child: Text("Placeholder")),
-    Center(child: Text("Placeholder")),
+    const ProfileTab(),
+    // FIXME: fix ProfileTab
   ];
 
   @override

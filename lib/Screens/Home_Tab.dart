@@ -14,7 +14,7 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 12),
           const SectionHeader(Title: 'Resources'),
           const SizedBox(height: 8),
-          ..._mockResources.map((r) => ResourceCard(Resource: r))
+          ..._mockResources.map((r) => ResourceCard(Resource: r)),
         ],
       ),
     );
