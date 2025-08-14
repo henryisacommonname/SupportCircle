@@ -7,8 +7,15 @@ class HomeTab extends StatelessWidget {
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
-        children: [WelcomeCard(), const SizedBox(height: 12),
-        QuickActionsRow(), const SizedBox(height: 12)],
+        children: [
+          WelcomeCard(),
+          const SizedBox(height: 12),
+          QuickActionsRow(),
+          const SizedBox(height: 12),
+          const SectionHeader(Title: 'Resources'),
+          const SizedBox(height: 8),
+          ..._mockResources.map((r) => ResourceCard(Resource: r))
+        ],
       ),
     );
   }
@@ -129,3 +136,70 @@ class QuickActionsCard extends StatelessWidget {
     );
   }
 }
+
+class SectionHeader extends StatelessWidget {
+  final String Title;
+  const SectionHeader({required this.Title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      Title,
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+    );
+  }
+}
+
+class ResourceCard extends StatelessWidget {
+  final resource Resource;
+  const ResourceCard({required this.Resource});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      child: ListTile(
+        leading: Icon(Resource.ResourceIcon),
+        onTap: () => Navigator.of(
+          context,
+        ).pushNamed("/Resources", arguments: Resource.ID),
+        title: Text(
+          Resource.Title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(Resource.Subtitle),
+        trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
+
+class resource {
+  final String ID;
+  final String Title;
+  final String Subtitle;
+  final IconData ResourceIcon;
+  const resource({
+    required this.ID,
+    required this.Title,
+    required this.Subtitle,
+    required this.ResourceIcon,
+  });
+}
+
+const _mockResources = <resource>[
+  resource(
+    ID: 'child-dev-guide',
+    Title: 'Child Development Guide',
+    Subtitle: 'Understanding child behavior',
+    ResourceIcon: Icons.menu_book_outlined,
+  ),
+  resource(
+    ID: 'parenting-classes',
+    Title: 'Parenting Classes',
+    Subtitle: 'Learn effective techniques',
+    ResourceIcon: Icons.school_outlined,
+  ),
+];
