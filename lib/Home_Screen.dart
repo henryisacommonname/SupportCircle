@@ -16,8 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
     HomeTab(),
     Center(child: Text("Supporting children and families together")),
     Center(child: Text("Placeholder")),
-    const ProfileTab(),
-    // FIXME: fix ProfileTab
+    ProfileTab(),
   ];
 
   @override
