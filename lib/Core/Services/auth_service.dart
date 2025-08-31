@@ -1,59 +1,60 @@
+// auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // Stream of auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  // Get current user
   User? get currentUser => _auth.currentUser;
 
-
-  // Email/Password Sign In
   Future<User?> signInWithEmail(String email, String password) async {
-    final cred = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-
-    // make sure their Firestore doc exists
+    final cred = await _auth.signInWithEmailAndPassword(email: email, password: password);
     await ensureUserDoc(cred.user!);
-
     return cred.user;
   }
 
-  // Email/Password Sign Up
-  Future<UserCredential> registerWithEmail(
-    String email,
-    String password,
-  ) async {
-    return await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+  Future<UserCredential> registerWithEmail(String email, String password) async {
+    final cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
+    await ensureUserDoc(cred.user!); // ensure profile doc right after register
+    return cred;
   }
 
-  // Sign Out
-  Future<void> signOut() async {
-    return await _auth.signOut();
-  }
+  Future<void> signOut() async => _auth.signOut();
 
   Future<void> ensureUserDoc(User user) async {
-    final userRef = FirebaseFirestore.instance.collection('users').doc(
-        user.uid);
-
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
     final doc = await userRef.get();
+
     if (!doc.exists) {
+      
       await userRef.set({
-        'displayName': user.displayName ?? 'Volunteer',
+        'DisplayName': (user.displayName?.trim().isNotEmpty == true)
+            ? user.displayName
+            : 'Volunteer',
+        'pfpURL': user.photoURL ?? '',
+        'TimeTracker': 0,                 // int to start; make it double if you prefer fractional hours
         'role': 'High School Volunteer',
         'level': 1,
-        'photoUrl': user.photoURL ?? '',
-        'hoursVolunteered': 0,
         'childrenHelped': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
+    } else {
+      final existing = doc.data()!;
+      final updates = <String, dynamic>{'updatedAt': FieldValue.serverTimestamp()};
+      if (!existing.containsKey('DisplayName')) {
+        updates['DisplayName'] = (user.displayName?.trim().isNotEmpty == true)
+            ? user.displayName
+            : 'Volunteer';
+      }
+      if (!existing.containsKey('pfpURL')) {
+        updates['pfpURL'] = user.photoURL ?? '';
+      }
+      if (!existing.containsKey('TimeTracker')) {
+        updates['TimeTracker'] = 0;
+      }
+      if (updates.length > 1) await userRef.update(updates);
     }
   }
 }
