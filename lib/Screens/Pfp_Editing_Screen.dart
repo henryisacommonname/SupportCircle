@@ -31,6 +31,38 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
     final UserRef = FirebaseFirestore.instance
         .collection('Users')
         .doc(User.uid);
-    return Scaffold(appBar: AppBar(title: Text('Edit Your Profile')));
+    return Scaffold(
+      appBar: AppBar(title: Text('Edit Your Profile')),
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: UserRef.snapshots(),
+        builder: (context, snap) {
+          return ListView(
+            children: [
+              Center(),
+              const SizedBox(),
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _displayNameCtrl,
+                      decoration: const InputDecoration(),
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(),
+                    TextFormField(),
+                    const SizedBox(),
+                    Card(),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 }
+
+//actions: [TextButton(onPressed: _saving ? null : () async {if (!_formKey.currentState!.validate()) return; setState(() => _saving = true);
+//try {await AuthService().updateuserProfile(displayName: _displaynameCtrl.text.trim(),PhotoURL: _pfpCtrl.text.trim().isEmpty ? null : _pfpCtrl.text.trim(),);}; child: _saving;})],));
