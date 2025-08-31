@@ -13,7 +13,9 @@ class ProfileTab extends StatelessWidget {
       return const Center(child: Text('Not signed in'));
     }
 
-    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
 
     return SafeArea(
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -22,7 +24,8 @@ class ProfileTab extends StatelessWidget {
           if (snap.hasError) {
             return Center(child: Text('Error: ${snap.error}'));
           }
-          if (!snap.hasData || snap.connectionState == ConnectionState.waiting) {
+          if (!snap.hasData ||
+              snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -37,7 +40,9 @@ class ProfileTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               ProfileHeader(
-                displayName: displayName?.isNotEmpty == true ? displayName! : 'Volunteer',
+                displayName: displayName?.isNotEmpty == true
+                    ? displayName!
+                    : 'Volunteer',
                 pfpURL: (pfpURL?.isNotEmpty == true) ? pfpURL : null,
                 hours: (timeTracker is num) ? timeTracker.toDouble() : 0.0,
               ),
@@ -58,9 +63,9 @@ class ProfileTab extends StatelessWidget {
 }
 
 class ProfileHeader extends StatelessWidget {
-  final String displayName;     // non-nullable (we pass a safe default)
-  final String? pfpURL;         // nullable
-  final double hours;           // show hours tracked
+  final String displayName; // non-nullable (we pass a safe default)
+  final String? pfpURL; // nullable
+  final double hours; // show hours tracked
 
   const ProfileHeader({
     super.key,
@@ -91,7 +96,10 @@ class ProfileHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(displayName, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    displayName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 4),
                   Text('Hours volunteered: ${hours.toStringAsFixed(1)}'),
                 ],
@@ -118,7 +126,8 @@ class Settings extends StatelessWidget {
             title: const Text('Notifications'),
             subtitle: const Text('Manage Your Alerts'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).pushNamed('/Settings/Notifications'),
+            onTap: () =>
+                Navigator.of(context).pushNamed('/Settings/Notifications'),
           ),
           const Divider(height: 1),
           ListTile(
@@ -130,11 +139,12 @@ class Settings extends StatelessWidget {
           ),
           const Divider(height: 1),
           ListTile(
-            leading: const Icon(Icons.help)),
-            title: const Text('Help & Support'),
-            subtitle: const Text('Get Assistance'),
+            leading: const Icon(Icons.notifications),
+            title: const Text('Notifications'),
+            subtitle: const Text('Manage Your Alerts'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).pushNamed('/Settings/Support'),
+            onTap: () =>
+                Navigator.of(context).pushNamed('/Settings/Notifications'),
           ),
         ],
       ),
