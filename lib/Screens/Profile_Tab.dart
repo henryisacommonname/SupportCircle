@@ -109,13 +109,13 @@ class ProfileHeader extends StatelessWidget {
                 ],
               ),
             ),
-        IconButton(
-          onPressed: () =>
-              Navigator.of(context).pushNamed("/profile/edit"),
-          icon: Icon(Icons.edit),
-          tooltip: "Edit Your profile!",
-          ),
-        ]),
+            IconButton(
+              onPressed: () => Navigator.of(context).pushNamed("/profile/edit"),
+              icon: Icon(Icons.edit),
+              tooltip: "Edit Your profile!",
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -32,7 +32,17 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
         .collection('Users')
         .doc(User.uid);
     return Scaffold(
-      appBar: AppBar(title: Text('Edit Your Profile')),
+      appBar: AppBar(
+        title: Text('Edit Your Profile'),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : () async {},
+            child: _saving
+                ? const Padding(padding: EdgeInsets.symmetric(horizontal: 12))
+                : const Text("Save"),
+          ),
+        ],
+      ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
         stream: UserRef.snapshots(),
         builder: (context, snap) {
@@ -60,25 +70,55 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(),
-                    TextFormField(
-                      controller: _pfpCtrl,
-                      decoration: const InputDecoration(
-                        labelText: "Profile Photo URL",
+                    SizedBox(
+                      child: TextFormField(
+                        controller: _pfpCtrl,
+                        decoration: const InputDecoration(
+                          labelText: "Profile Photo URL",
+                        ),
+                        keyboardType: TextInputType.url,
+                        onChanged: (_) => setState(() {}), //refresh preview
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) {
+                            return null;
+                          }
+                          final IsValid =
+                              Uri.tryParse(v.trim())?.hasAbsolutePath ?? false;
+                          return IsValid ? null : "Enter a Valid URL";
+                        },
                       ),
-                      keyboardType: TextInputType.url,
-                      onChanged: (_) => setState(() {}), //refresh preview
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return null;
-                        }
-                        final IsValid =
-                            Uri.tryParse(v.trim())?.hasAbsolutePath ?? false;
-                        return IsValid ? null : "Enter a Valid URL";
-                      },
                     ),
-                    const SizedBox(),
-                    Card(),
+
+                    SizedBox(
+                      width: 250,
+                      child: ElevatedButton(
+                        onPressed: _saving
+                            ? null
+                            : () async {
+                                if (!_formKey.currentState!.validate()) return;
+                                setState(() => _saving = true);
+                                try {
+                                  await AuthService().UpdateUserProfile(
+                                    DisplayName: _displayNameCtrl.text.trim(),
+                                    PhotoURL: _pfpCtrl.text.trim(),
+                                  );
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("SaveFailed:$e")),
+                                  );
+                                }
+                                ;
+                              },
+                        child: _saving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 10,
+                                child: CircularProgressIndicator(),
+                              )
+                            : const Text("Save Your profile!"),
+                      ),
+                    ),
                   ],
                 ),
               ),
