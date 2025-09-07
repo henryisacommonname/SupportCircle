@@ -1,4 +1,5 @@
 import 'package:draft_1/Screens/Login_Screen.dart';
+import 'package:draft_1/Screens/Pfp_Editing_Screen.dart';
 import 'package:draft_1/Screens/Register_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         "/login": (context) => LoginScreen(),
         "/Register": (context) => RegisterScreen(),
         "/Home": (context) => HomeScreen(),
+        "/profile/edit": (context) => const ProfileEditingScreen()
       },
     );
   }

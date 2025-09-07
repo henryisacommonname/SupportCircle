@@ -96,17 +96,26 @@ class ProfileHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    displayName,
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Text(
+                        displayName,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text('Hours volunteered: ${hours.toStringAsFixed(1)}'),
                 ],
               ),
             ),
-          ],
-        ),
+        IconButton(
+          onPressed: () =>
+              Navigator.of(context).pushNamed("/profile/edit"),
+          icon: Icon(Icons.edit),
+          tooltip: "Edit Your profile!",
+          ),
+        ]),
       ),
     );
   }

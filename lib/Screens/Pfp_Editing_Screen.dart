@@ -46,11 +46,37 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                   children: [
                     TextFormField(
                       controller: _displayNameCtrl,
-                      decoration: const InputDecoration(),
+                      decoration: const InputDecoration(
+                        labelText: "Display Name",
+                      ),
                       textInputAction: TextInputAction.next,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return "Invalid Username";
+                        }
+                        if (v.trim().length > 20) {
+                          return "Username too long";
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(),
-                    TextFormField(),
+                    TextFormField(
+                      controller: _pfpCtrl,
+                      decoration: const InputDecoration(
+                        labelText: "Profile Photo URL",
+                      ),
+                      keyboardType: TextInputType.url,
+                      onChanged: (_) => setState(() {}), //refresh preview
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return null;
+                        }
+                        final IsValid =
+                            Uri.tryParse(v.trim())?.hasAbsolutePath ?? false;
+                        return IsValid ? null : "Enter a Valid URL";
+                      },
+                    ),
                     const SizedBox(),
                     Card(),
                   ],
