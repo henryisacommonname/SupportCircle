@@ -71,6 +71,7 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                       },
                     ),
                     SizedBox(
+                      width: 350,
                       child: TextFormField(
                         controller: _pfpCtrl,
                         decoration: const InputDecoration(
