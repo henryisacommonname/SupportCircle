@@ -3,6 +3,7 @@ import 'firebase_options.dart';
 import 'Core/Services/auth_service.dart';
 import '/Screens/Home_Tab.dart';
 import 'screens/Profile_Tab.dart';
+import 'screens/Training_Screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,7 +15,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int index = 0;
   static const List<Widget> pages = <Widget>[
     HomeTab(),
-    Center(child: Text("Supporting children and families together")),
+    TrainingScreen(),
     Center(child: Text("Placeholder")),
     ProfileTab(),
   ];

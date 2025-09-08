@@ -35,9 +35,9 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
       if (mounted) Navigator.of(context).pop(); // back to Profile
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -50,7 +50,9 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
       return const Scaffold(body: Center(child: Text('Not signed in')));
     }
 
-    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
 
     return Scaffold(
       appBar: AppBar(
@@ -123,7 +125,8 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
                         final uri = Uri.tryParse(v.trim());
-                        final ok = uri != null && uri.hasScheme && uri.hasAuthority;
+                        final ok =
+                            uri != null && uri.hasScheme && uri.hasAuthority;
                         return ok ? null : 'Enter a valid URL';
                       },
                     ),
