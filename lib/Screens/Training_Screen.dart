@@ -83,6 +83,7 @@ class TrainingScreenState extends State<TrainingScreen> {
                 const SizedBox(height: 10),
                 ClipRRect(
                   child: LinearProgressIndicator(
+                    value: _completion,
                     minHeight: 10,
                     backgroundColor: Colors.deepPurple,
                     borderRadius: BorderRadius.circular(16),
@@ -93,6 +94,9 @@ class TrainingScreenState extends State<TrainingScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          for(final m in _modules)
+            TrainingModuleCard(module: m, onTap: (){}, onReview: m.status == ModuleStatus.completed?(){}: null)
         ],
       ),
     );
