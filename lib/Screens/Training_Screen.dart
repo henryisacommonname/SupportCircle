@@ -99,17 +99,83 @@ class TrainingModuleCard extends StatelessWidget {
     String badgeText;
 
     switch (module.status) {
-      case ModuleStatus.completed: badgeText = "completed!";
-      BadgeColor = const Color(0xFF2BB673);
-      break;
-      case ModuleStatus.inProgress: badgeText = "inProgress";
-      BadgeColor = const Color(0xFFF6A21A);
-      break;
-      default: badgeText = "Not Started";
-      BadgeColor = const Color(0xFFE53935);
-
+      case ModuleStatus.completed:
+        badgeText = "completed!";
+        BadgeColor = const Color(0xFF2BB673);
+        break;
+      case ModuleStatus.inProgress:
+        badgeText = "inProgress";
+        BadgeColor = const Color(0xFFF6A21A);
+        break;
+      default:
+        badgeText = "Not Started";
+        BadgeColor = const Color(0xFFE53935);
     }
-    return InkWell(child: Container(child: Column(),),);
-
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.network(module.imageURL, fit: BoxFit.cover),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 6,
+                  horizontal: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: BadgeColor,
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                child: Text(badgeText),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
+              child: Text(module.title),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Text(module.subtitle),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.only(
+                left: 14,
+                right: 8,
+                bottom: 12,
+                top: 0,
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_alarms_outlined),
+                  const SizedBox(width: 5),
+                  Text("${module.minutes} Min"),
+                  Spacer(),
+                  if (onReview != null)
+                    TextButton(onPressed: onReview, child: const Text("Review"))
+                  else if (module.status == ModuleStatus.inProgress)
+                    TextButton(onPressed: onTap, child: Text("Resume"))
+                  else
+                    TextButton(onPressed: onTap, child: Text("Start")),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
