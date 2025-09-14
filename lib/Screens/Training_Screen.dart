@@ -148,22 +148,22 @@ class TrainingModuleCard extends StatelessWidget {
                     child: Image.network(module.imageURL, fit: BoxFit.cover),
                   ),
                 ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: BadgeColor,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(badgeText),
+                  ),
+                ),
               ],
-            ),
-            Positioned(
-              top: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 6,
-                  horizontal: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: BadgeColor,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: Text(badgeText),
-              ),
             ),
             Padding(
               padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
