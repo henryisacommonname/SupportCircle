@@ -28,7 +28,26 @@ class TrainingScreen extends StatefulWidget {
 }
 
 class TrainingScreenState extends State<TrainingScreen> {
-  final List<TrainingModule> _modules = const [];
+  final List<TrainingModule> _modules = const [
+    TrainingModule(
+      id: 'mod_1',
+      title: 'Understanding Child Behavior',
+      subtitle: 'Learn to recognize and respond to different emotional states',
+      minutes: 15,
+      imageURL:
+          'https://images.unsplash.com/photo-1613836258403-6b9aa7ee3174?q=80&w=1200&auto=format&fit=crop',
+      status: ModuleStatus.completed,
+    ),
+    TrainingModule(
+      id: 'mod_2',
+      title: 'Safe Play Activities',
+      subtitle: 'Engaging activities that promote emotional safety and growth',
+      minutes: 12,
+      imageURL:
+          'https://images.unsplash.com/photo-1542280756-74b2f55e73e1?q=80&w=1200&auto=format&fit=crop',
+      status: ModuleStatus.inProgress,
+    ),
+  ];
 
   double get _completion {
     if (_modules.isEmpty) return 0;
