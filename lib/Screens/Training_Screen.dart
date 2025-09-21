@@ -95,8 +95,12 @@ class TrainingScreenState extends State<TrainingScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          for(final m in _modules)
-            TrainingModuleCard(module: m, onTap: (){}, onReview: m.status == ModuleStatus.completed?(){}: null)
+          for (final m in _modules)
+            TrainingModuleCard(
+              module: m,
+              onTap: () {},
+              onReview: m.status == ModuleStatus.completed ? () {} : null,
+            ),
         ],
       ),
     );
