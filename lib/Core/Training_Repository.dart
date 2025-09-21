@@ -90,8 +90,39 @@ class TrainingRepository {
             )
             .toList(),
       );
-  Stream<Map<String,ModuleStatus>> _Progress(String UserID) => _f.collection('users').doc(UserID).collection('ModuleProgress').snapshots().map((snap) => {
-    for(final D in snap.docs) D.id: StringtoStatus(D.data()["status"] as String)
-  });
-  Stream<List<TrainingModule>> ModuleStatus(String UserID) => Rx.combineLatest2(_modules(), _Progress(UserID),(List<TrainingModule>mods,Map<String,ModuleStatus>prog) => mods.map((m)=> m.copyWith(status:prog[m.id])).toList());
+  //combine stream here
+  Stream<Map<String, ModuleStatus>> _Progress(String UserID) => _f
+      .collection('users')
+      .doc(UserID)
+      .collection('ModuleProgress')
+      .snapshots()
+      .map(
+        (snap) => {
+          for (final D in snap.docs)
+            D.id: StringtoStatus(D.data()["status"] as String),
+        },
+      );
+  Stream<List<TrainingModule>> ModuleswithStatus(String UserID) =>
+      Rx.combineLatest2(
+        _modules(),
+        _Progress(UserID),
+        (List<TrainingModule> mods, Map<String, ModuleStatus> prog) =>
+            mods.map((m) => m.copyWith(status: prog[m.id])).toList(),
+      );
+
+  Future<void> setStatus({
+    required String uid,
+    required String moduleid,
+    required ModuleStatus status,
+  }) async {
+    await _f
+        .collection("users")
+        .doc(uid)
+        .collection("ModuleProgress")
+        .doc(moduleid)
+        .set({
+          "status": StatustoString(status),
+          "UpdatedAt": FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+  }
 }
