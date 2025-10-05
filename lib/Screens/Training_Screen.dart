@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../Core/Training_Repository.dart';
 
 enum ModuleStatus { notStarted, inProgress, completed }
 
@@ -28,80 +30,77 @@ class TrainingScreen extends StatefulWidget {
 }
 
 class TrainingScreenState extends State<TrainingScreen> {
-  final List<TrainingModule> _modules = const [
-    TrainingModule(
-      id: 'mod_1',
-      title: 'Understanding Child Behavior',
-      subtitle: 'Learn to recognize and respond to different emotional states',
-      minutes: 15,
-      imageURL:
-          'https://images.unsplash.com/photo-1613836258403-6b9aa7ee3174?q=80&w=1200&auto=format&fit=crop',
-      status: ModuleStatus.completed,
-    ),
-    TrainingModule(
-      id: 'mod_2',
-      title: 'Safe Play Activities',
-      subtitle: 'Engaging activities that promote emotional safety and growth',
-      minutes: 12,
-      imageURL:
-          'https://images.unsplash.com/photo-1542280756-74b2f55e73e1?q=80&w=1200&auto=format&fit=crop',
-      status: ModuleStatus.inProgress,
-    ),
-  ];
+  final _repo = TrainingRepository();
 
-  double get _completion {
-    if (_modules.isEmpty) return 0;
-    final done = _modules
-        .where((m) => m.status == ModuleStatus.completed)
-        .length;
-    return done / _modules.length;
+  double _completionOf(List<TrainingModule> Modules){
+    if (Modules.isEmpty) {
+      return 0;
+    }
+  final Done = Modules.where((M) => M.status == ModuleStatus.completed).length;
+    return Done/Modules.length;
   }
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Scaffold(body: Center(child: Text('Please sign in,')));
+    }
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text("Training")),
-      body: ListView(
-        padding: EdgeInsets.all(16),
-        children: [
-          Container(
+      body: StreamBuilder(
+        stream: _repo.ModuleswithStatus(uid),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snap.hasError) {
+            return Center(child: Text("ERROR -${snap.error}"));
+          }
+          final modules = snap.data ?? const <TrainingModule>[];
+          final _completion = _completionOf(modules);
+          final pctText = '${(_completion * 100).round()}% of modules completed';
+          return ListView(
+
             padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 12,
-                  color: Colors.deepPurple.withOpacity(0.05),
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 12,
+                      color: Colors.deepPurple.withOpacity(0.05),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text('Your Progress'),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  child: LinearProgressIndicator(
-                    value: _completion,
-                    minHeight: 10,
-                    backgroundColor: Colors.deepPurple,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                child: Column(
+                  children: [
+                    Text('Your Progress'),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      child: LinearProgressIndicator(
+                        value: _completion,
+                        minHeight: 10,
+                        backgroundColor: Colors.deepPurple,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Replace Me!!'),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text('Replace Me!!'),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          for (final m in _modules)
-            TrainingModuleCard(
-              module: m,
-              onTap: () {},
-              onReview: m.status == ModuleStatus.completed ? () {} : null,
-            ),
-        ],
+              ),
+              const SizedBox(height: 16,),
+              for(final M in modules)
+                TrainingModuleCard(module: M, onTap: ()async{}, onReview: M.status == ModuleStatus.completed ? (){//TODO DO SOMETHING HERE, like an animation
+                }:null)
+            ],
+          );
+        },
       ),
     );
   }
