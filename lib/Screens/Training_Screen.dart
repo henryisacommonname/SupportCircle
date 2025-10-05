@@ -2,26 +2,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../Core/Training_Repository.dart';
 
-enum ModuleStatus { notStarted, inProgress, completed }
-
-class TrainingModule {
-  final String id;
-  final String title;
-  final String subtitle;
-  final String imageURL;
-  final int minutes;
-  final ModuleStatus status;
-
-  const TrainingModule({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.imageURL,
-    required this.minutes,
-    required this.status,
-  });
-}
-
 class TrainingScreen extends StatefulWidget {
   const TrainingScreen({super.key});
 
@@ -32,12 +12,14 @@ class TrainingScreen extends StatefulWidget {
 class TrainingScreenState extends State<TrainingScreen> {
   final _repo = TrainingRepository();
 
-  double _completionOf(List<TrainingModule> Modules){
+  double _completionOf(List<TrainingModule> Modules) {
     if (Modules.isEmpty) {
       return 0;
     }
-  final Done = Modules.where((M) => M.status == ModuleStatus.completed).length;
-    return Done/Modules.length;
+    final Done = Modules.where(
+      (M) => M.status == ModuleStatus.completed,
+    ).length;
+    return Done / Modules.length;
   }
 
   @override
@@ -60,9 +42,9 @@ class TrainingScreenState extends State<TrainingScreen> {
           }
           final modules = snap.data ?? const <TrainingModule>[];
           final _completion = _completionOf(modules);
-          final pctText = '${(_completion * 100).round()}% of modules completed';
+          final pctText =
+              '${(_completion * 100).round()}% of modules completed';
           return ListView(
-
             padding: EdgeInsets.all(16),
             children: [
               Container(
@@ -94,10 +76,23 @@ class TrainingScreenState extends State<TrainingScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16,),
-              for(final M in modules)
-                TrainingModuleCard(module: M, onTap: ()async{}, onReview: M.status == ModuleStatus.completed ? (){//TODO DO SOMETHING HERE, like an animation
-                }:null)
+              const SizedBox(height: 16),
+              for (final M in modules)
+                TrainingModuleCard(
+                  module: M,
+                  onTap: () async {
+                    await _repo.setStatus(
+                      uid: uid,
+                      moduleid: M.id,
+                      status: ModuleStatus.inProgress,
+                    );
+                  },
+                  onReview: M.status == ModuleStatus.completed
+                      ? () {
+                          //TODO DO SOMETHING HERE, like an animation
+                        }
+                      : null,
+                ),
             ],
           );
         },
