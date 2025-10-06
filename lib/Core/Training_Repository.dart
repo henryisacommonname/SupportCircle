@@ -27,6 +27,9 @@ String StatustoString(ModuleStatus MS) {
 }
 
 class TrainingModule {
+  final String? contentType;
+  final String? contentURL;
+  final String? body;
   final String id;
   final String title;
   final String subtitle;
@@ -43,9 +46,15 @@ class TrainingModule {
     required this.minutes,
     required this.order,
     this.status = ModuleStatus.notStarted,
+    this.contentType,
+    this.contentURL,
+    this.body,
   });
 
   TrainingModule copyWith({ModuleStatus? status}) => TrainingModule(
+    contentType: contentType,
+    contentURL: contentURL,
+    body: body,
     id: id,
     title: title,
     subtitle: subtitle,
@@ -64,6 +73,9 @@ class TrainingModule {
       imageURL: D['imageURL'] as String,
       minutes: (D['minutes'] as num).toInt(),
       order: (D['order'] as num ?? 0).toInt(),
+      contentType: D['contentType'] as String?,
+      contentURL: D['contentURL'] as String?,
+      body: D['body'] as String?,
     );
   }
 }

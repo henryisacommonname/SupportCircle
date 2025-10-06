@@ -13,6 +13,7 @@ class ModulePlayerScreen extends StatefulWidget {
 class ModulePlayerScreenState extends State<ModulePlayerScreen> {
   late final TrainingRepository Repo;
   bool loadingVideo = false;
+  VideoPlayerController VC;
 
   // VideoPlayerController? _controller;
   @override
@@ -21,7 +22,13 @@ class ModulePlayerScreenState extends State<ModulePlayerScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(m.title)),
-      body: ListView(padding: const EdgeInsets.all(16), children: []),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (m.contentType == "video" && m.contentURL != null)
+            {VideoSection(VideoController: VC, IsLoading: loadingVideo)}, //FIXME
+        ],
+      ),
     );
   }
 }
