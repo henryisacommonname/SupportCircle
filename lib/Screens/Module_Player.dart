@@ -1,3 +1,4 @@
+import 'package:draft_1/Screens/Training_Screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../Core/Training_Repository.dart';
@@ -13,7 +14,24 @@ class ModulePlayerScreen extends StatefulWidget {
 class ModulePlayerScreenState extends State<ModulePlayerScreen> {
   late final TrainingRepository Repo;
   bool loadingVideo = false;
-  VideoPlayerController VC;
+  bool MarkModule = false;
+  VideoPlayerController? VC;
+
+  Future<void> MarkComplete() async {
+    final UID = FirebaseAuth.instance.currentUser?.uid;
+    if (UID == null) return;
+    setState(() => MarkModule = true);
+    try {
+      await Repo.setStatus(
+        uid: UID,
+        moduleid: widget.Trainingscreen.id,
+        status: ModuleStatus.completed,
+      );
+      if (mounted) Navigator.pop(context, true);
+    } finally {
+      if (mounted) setState(() => MarkModule = false);
+    }
+  }
 
   // VideoPlayerController? _controller;
   @override
@@ -26,7 +44,22 @@ class ModulePlayerScreenState extends State<ModulePlayerScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           if (m.contentType == "video" && m.contentURL != null)
-            {VideoSection(VideoController: VC, IsLoading: loadingVideo)}, //FIXME
+            VideoSection(VideoController: VC, IsLoading: loadingVideo)
+          else
+            ArticleText(Subtitle: m.subtitle, BodyText: m.body),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: MarkModule ? null : MarkComplete,
+            label: Text(MarkModule ? "COMPLETED!" : "INCOMPLETE"),
+            icon: MarkModule
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(),
+                  )
+                : Icon(Icons.check_circle_outline),
+            //CUSTOMIZE LATER
+          ),
         ],
       ),
     );

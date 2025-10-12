@@ -1,3 +1,4 @@
+import 'package:draft_1/Screens/Module_Player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../Core/Training_Repository.dart';
@@ -86,6 +87,7 @@ class TrainingScreenState extends State<TrainingScreen> {
                       moduleid: M.id,
                       status: ModuleStatus.inProgress,
                     );
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => ModulePlayerScreen(Trainingscreen: M)));
                   },
                   onReview: M.status == ModuleStatus.completed
                       ? () {
