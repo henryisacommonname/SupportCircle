@@ -1,11 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -53,7 +46,19 @@ class LocalResourceCard extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 10),Row(children: [const Icon(Icons.location_on_outlined),const SizedBox(width: 8),const Spacer(),FilledButton.icon(onPressed: null, label: Text('Enable Location'),icon: Icon(Icons.my_location),)])
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined),
+                const SizedBox(width: 8),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: null,
+                  label: Text('Enable Location'),
+                  icon: Icon(Icons.my_location),
+                ),
+              ],
+            ),
           ],
         ),
       ),

@@ -4,19 +4,20 @@ import 'Core/Services/auth_service.dart';
 import '/Screens/Home_Tab.dart';
 import 'screens/Profile_Tab.dart';
 import 'screens/Training_Screen.dart';
+import 'screens/Support_Screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
+//TAB NAVIGATOR
 class _HomeScreenState extends State<HomeScreen> {
   int index = 0;
   static const List<Widget> pages = <Widget>[
     HomeTab(),
     TrainingScreen(),
-    Center(child: Text("Placeholder")),
+    SupportScreen(),
     ProfileTab(),
   ];
 

@@ -63,6 +63,7 @@ class QuickActionsRow extends StatelessWidget {
             subtitle: 'get real-time help',
             QAIcon: Icons.smart_toy_outlined,
             QAroute: '/assistant',
+            color: Colors.white,
           ),
         ),
 
@@ -82,6 +83,7 @@ class QuickActionsRow extends StatelessWidget {
 }
 
 class QuickActionsCard extends StatelessWidget {
+  final Color? color;
   final String title;
   final String subtitle;
   final IconData QAIcon;
@@ -93,15 +95,17 @@ class QuickActionsCard extends StatelessWidget {
     required this.QAIcon,
     required this.QAroute,
     this.emph = false,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final Scheme = Theme.of(context).colorScheme;
-    final bg = emph ? Scheme.errorContainer : Scheme.surface;
+    final bg = color;
     final fg = emph ? Scheme.onErrorContainer : Scheme.onSurface;
 
     return Card(
+      color: bg ,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(

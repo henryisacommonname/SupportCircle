@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'Core/Services/auth_gate.dart';
 import 'firebase_options.dart';
 import 'Home_Screen.dart';
+import 'Screens/Support_Screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
