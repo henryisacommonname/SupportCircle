@@ -87,7 +87,12 @@ class TrainingScreenState extends State<TrainingScreen> {
                       moduleid: M.id,
                       status: ModuleStatus.inProgress,
                     );
-                    await Navigator.push(context, MaterialPageRoute(builder: (_) => ModulePlayerScreen(Trainingscreen: M)));
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ModulePlayerScreen(Trainingscreen: M),
+                      ),
+                    );
                   },
                   onReview: M.status == ModuleStatus.completed
                       ? () {
