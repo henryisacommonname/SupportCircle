@@ -105,7 +105,7 @@ class QuickActionsCard extends StatelessWidget {
     final fg = emph ? Scheme.onErrorContainer : Scheme.onSurface;
 
     return Card(
-      color: bg ,
+      color: bg,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
