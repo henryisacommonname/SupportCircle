@@ -1,117 +1,179 @@
-import 'package:draft_1/Screens/Training_Screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../Core/Training_Repository.dart';
 import 'package:video_player/video_player.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../Core/Training_Repository.dart';
 
 class ModulePlayerScreen extends StatefulWidget {
-  final TrainingModule Trainingscreen;
-  const ModulePlayerScreen({super.key, required this.Trainingscreen});
+  final TrainingModule module;
+  const ModulePlayerScreen({super.key, required this.module});
+
   @override
   State<ModulePlayerScreen> createState() => ModulePlayerScreenState();
 }
 
 class ModulePlayerScreenState extends State<ModulePlayerScreen> {
-  late final TrainingRepository Repo;
-  bool loadingVideo = false;
-  bool MarkModule = false;
-  VideoPlayerController? VC;
+  late final TrainingRepository repo;
 
-  Future<void> MarkComplete() async {
-    final UID = FirebaseAuth.instance.currentUser?.uid;
-    if (UID == null) return;
-    setState(() => MarkModule = true);
-    try {
-      await Repo.setStatus(
-        uid: UID,
-        moduleid: widget.Trainingscreen.id,
-        status: ModuleStatus.completed,
-      );
-      if (mounted) Navigator.pop(context, true);
-    } finally {
-      if (mounted) setState(() => MarkModule = false);
+  VideoPlayerController? videoController;
+  bool isLoadingVideo = false;
+  bool isMarking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    repo = TrainingRepository();
+
+    if (widget.module.contentType == 'video' &&
+        widget.module.contentURL != null &&
+        widget.module.contentURL!.isNotEmpty) {
+      _initVideo(widget.module.contentURL!);
     }
   }
 
-  // VideoPlayerController? _controller;
+  Future<void> _initVideo(String url) async {
+    setState(() => isLoadingVideo = true);
+    final c = VideoPlayerController.networkUrl(Uri.parse(url));
+    videoController = c;
+    await c.initialize();
+    await c.setLooping(false);
+    setState(() => isLoadingVideo = false);
+  }
+
+  Future<void> _markComplete() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    setState(() => isMarking = true);
+    try {
+      await repo.setStatus(
+        uid: uid,
+        moduleId: widget.module.id, // ensure repo expects moduleId (camelCase)
+        status: ModuleStatus.completed,
+      );
+      if (mounted) Navigator.pop(context, true); // return to list
+    } finally {
+      if (mounted) setState(() => isMarking = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    videoController?.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final m = widget.Trainingscreen;
+    final m = widget.module;
     final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: Text(m.title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (m.contentType == "video" && m.contentURL != null)
-            VideoSection(VideoController: VC, IsLoading: loadingVideo)
+          if (m.contentType == 'video' && m.contentURL != null)
+            _VideoSection(controller: videoController, loading: isLoadingVideo)
           else
-            ArticleText(Subtitle: m.subtitle, BodyText: m.body),
+            _ArticleSection(subtitle: m.subtitle, body: m.body),
+
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: MarkModule ? null : MarkComplete,
-            label: Text(MarkModule ? "COMPLETED!" : "INCOMPLETE"),
-            icon: MarkModule
+            onPressed: isMarking ? null : _markComplete,
+            icon: isMarking
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Icon(Icons.check_circle_outline),
-            //CUSTOMIZE LATER
+                : const Icon(Icons.check_circle_outline),
+            label: Text(isMarking ? 'Marking…' : 'Mark Complete'),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Takes ~${m.minutes} min',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
+      floatingActionButton:
+          (m.contentType == 'video' && videoController != null)
+          ? FloatingActionButton(
+              onPressed: () {
+                final v = videoController!;
+                if (v.value.isPlaying) {
+                  v.pause();
+                } else {
+                  v.play();
+                }
+                setState(() {});
+              },
+              child: Icon(
+                videoController!.value.isPlaying
+                    ? Icons.pause
+                    : Icons.play_arrow,
+              ),
+            )
+          : null,
     );
   }
 }
 
-class VideoSection extends StatelessWidget {
-  final VideoPlayerController? VideoController;
-  final bool IsLoading;
-  const VideoSection({required this.VideoController, required this.IsLoading});
+class _VideoSection extends StatelessWidget {
+  final VideoPlayerController? controller;
+  final bool loading;
+  const _VideoSection({required this.controller, required this.loading});
 
   @override
   Widget build(BuildContext context) {
-    if (IsLoading) {
-      return AspectRatio(
+    if (loading) {
+      return const AspectRatio(
         aspectRatio: 16 / 9,
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    if (VideoController == null || !VideoController!.value.isInitialized) {
-      return AspectRatio(
+    if (controller == null || !controller!.value.isInitialized) {
+      return const AspectRatio(
         aspectRatio: 16 / 9,
         child: Center(child: Icon(Icons.play_disabled)),
       );
     }
-    ;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: AspectRatio(
-        aspectRatio: VideoController!.value.aspectRatio == 0
-            ? (16 / 9)
-            : VideoController!.value.aspectRatio,
-        child: VideoPlayer(VideoController!),
-      ),
+    // No rounded corners per your preference
+    return AspectRatio(
+      aspectRatio: controller!.value.aspectRatio == 0
+          ? (16 / 9)
+          : controller!.value.aspectRatio,
+      child: VideoPlayer(controller!),
     );
   }
 }
 
-class ArticleText extends StatelessWidget {
-  final String? Subtitle;
-  final String? BodyText;
+class _ArticleSection extends StatelessWidget {
+  final String? subtitle;
+  final String? body;
+  const _ArticleSection({required this.subtitle, required this.body});
 
-  const ArticleText({required this.Subtitle, required this.BodyText});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final safeSubtitle = (subtitle ?? '').trim();
+    final safeBody = (body ?? '').trim();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(Subtitle!, style: theme.textTheme.titleMedium),
+        if (safeSubtitle.isNotEmpty)
+          Text(safeSubtitle, style: theme.textTheme.titleMedium),
         const SizedBox(height: 10),
-        Text(BodyText!.trim()),
+        Text(
+          safeBody.isNotEmpty
+              ? safeBody
+              : 'Read the guidance above, then tap “Mark Complete” when finished.',
+          style: theme.textTheme.bodyMedium,
+        ),
       ],
     );
   }
