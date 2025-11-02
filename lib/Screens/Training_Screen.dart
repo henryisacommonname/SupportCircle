@@ -90,7 +90,7 @@ class TrainingScreenState extends State<TrainingScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ModulePlayerScreen(Trainingscreen: M),
+                        builder: (_) => ModulePlayerScreen(module: M),
                       ),
                     );
                   },
