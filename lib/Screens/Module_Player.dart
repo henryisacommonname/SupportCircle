@@ -49,7 +49,7 @@ class ModulePlayerScreenState extends State<ModulePlayerScreen> {
     try {
       await repo.setStatus(
         uid: uid,
-        moduleId: widget.module.id, // ensure repo expects moduleId (camelCase)
+        moduleid: widget.module.id, // ensure repo expects moduleId (camelCase)
         status: ModuleStatus.completed,
       );
       if (mounted) Navigator.pop(context, true); // return to list
