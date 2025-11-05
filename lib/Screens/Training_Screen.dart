@@ -42,9 +42,9 @@ class TrainingScreenState extends State<TrainingScreen> {
             return Center(child: Text("ERROR -${snap.error}"));
           }
           final modules = snap.data ?? const <TrainingModule>[];
-          final _completion = _completionOf(modules);
+          final completion = _completionOf(modules);
           final pctText =
-              '${(_completion * 100).round()}% of modules completed';
+              '${(completion * 100).round()}% of modules completed';
           return ListView(
             padding: EdgeInsets.all(16),
             children: [
@@ -66,7 +66,7 @@ class TrainingScreenState extends State<TrainingScreen> {
                     const SizedBox(height: 10),
                     ClipRRect(
                       child: LinearProgressIndicator(
-                        value: _completion,
+                        value: completion,
                         minHeight: 10,
                         backgroundColor: Colors.deepPurple,
                         borderRadius: BorderRadius.circular(16),
@@ -113,7 +113,7 @@ class TrainingModuleCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onReview;
 
-  const TrainingModuleCard({
+  const TrainingModuleCard({super.key, 
     required this.module,
     required this.onTap,
     required this.onReview,

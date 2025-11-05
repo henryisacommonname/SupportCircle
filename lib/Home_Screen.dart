@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'firebase_options.dart';
 import 'Core/Services/auth_service.dart';
 import '/Screens/Home_Tab.dart';
 import 'screens/Profile_Tab.dart';
 import 'screens/Training_Screen.dart';
 import 'screens/Support_Screen.dart';
-import 'Core/Services/chatgpt_API_service.dart';
-import 'Widget/Collapsable_AI_Tool.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,9 +14,6 @@ class HomeScreen extends StatefulWidget {
 //TAB NAVIGATOR
 class _HomeScreenState extends State<HomeScreen> {
   int index = 0;
-  final _Chat_API = Chat_API(
-    "https://a23e4be5-1075-4548-baf7-22e80ab91722-00-f46fp7e8sg7i.worf.replit.dev/",
-  );
   static const List<Widget> pages = <Widget>[
     HomeTab(),
     TrainingScreen(),
@@ -39,15 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          pages[index],
-          Align(
-            alignment: Alignment.centerRight,
-            child: collapsible_Chat(api: _Chat_API),
-          ),
-        ],
-      ),
+      body: pages[index],
       bottomNavigationBar: SafeArea(
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,

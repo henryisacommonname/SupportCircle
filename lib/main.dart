@@ -3,10 +3,12 @@ import 'package:draft_1/Screens/Pfp_Editing_Screen.dart';
 import 'package:draft_1/Screens/Register_Screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
 import 'Core/Services/auth_gate.dart';
+import 'Core/Services/chatgpt_api_service.dart';
+import 'Widget/Collapsable_AI_Tool.dart';
 import 'firebase_options.dart';
 import 'Home_Screen.dart';
-import 'Screens/Support_Screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,12 +17,29 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  MyApp({super.key});
+
+  final ChatApiService _chatApi = ChatApiService(
+    "https://a23e4be5-1075-4548-baf7-22e80ab91722-00-f46fp7e8sg7i.worf.replit.dev/",
+  );
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Henry App',
       theme: ThemeData(primarySwatch: Colors.indigo),
       home: AuthGate(),
+      builder: (context, child) {
+        if (child == null) {
+          return const SizedBox.shrink();
+        }
+        return Stack(
+          children: [
+            child,
+            CollapsibleChat(api: _chatApi),
+          ],
+        );
+      },
       routes: {
         "/login": (context) => LoginScreen(),
         "/Register": (context) => RegisterScreen(),

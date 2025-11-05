@@ -24,7 +24,7 @@ class HomeTab extends StatelessWidget {
 
 /*--- Components ---*/
 class WelcomeCard extends StatelessWidget {
-  const WelcomeCard();
+  const WelcomeCard({super.key});
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -53,7 +53,7 @@ class WelcomeCard extends StatelessWidget {
 }
 
 class QuickActionsRow extends StatelessWidget {
-  const QuickActionsRow();
+  const QuickActionsRow({super.key});
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -90,7 +90,7 @@ class QuickActionsCard extends StatelessWidget {
   final IconData QAIcon;
   final String QAroute;
   final bool emph;
-  const QuickActionsCard({
+  const QuickActionsCard({super.key, 
     required this.title,
     required this.subtitle,
     required this.QAIcon,
@@ -144,7 +144,7 @@ class QuickActionsCard extends StatelessWidget {
 
 class SectionHeader extends StatelessWidget {
   final String Title;
-  const SectionHeader({required this.Title});
+  const SectionHeader({super.key, required this.Title});
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +159,7 @@ class SectionHeader extends StatelessWidget {
 
 class ResourceCard extends StatelessWidget {
   final resource Resource;
-  const ResourceCard({required this.Resource});
+  const ResourceCard({super.key, required this.Resource});
 
   @override
   Widget build(BuildContext context) {
