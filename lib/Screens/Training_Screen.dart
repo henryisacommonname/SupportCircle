@@ -139,7 +139,10 @@ class TrainingModuleCard extends StatelessWidget {
         badgeText = "Not Started";
         BadgeColor = const Color(0xFFE53935);
     }
+    final hasHeaderImage = module.hasimage;
+    Widget StatusBadge() => Container(child: Text(badgeText),);
     return InkWell(
+
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),

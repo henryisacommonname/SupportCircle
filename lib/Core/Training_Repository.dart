@@ -50,6 +50,8 @@ class TrainingModule {
     this.body,
   });
 
+  bool get hasimage => (imageURL ?? '').trim().isNotEmpty;
+
   TrainingModule copyWith({ModuleStatus? status}) => TrainingModule(
     contentType: contentType,
     contentURL: contentURL,
@@ -77,8 +79,11 @@ class TrainingModule {
       body: D['body'] as String?,
     );
   }
+  static String? ResolveImage(String? URL){
+    final trimmed = URL?.trim() ?? '';
+    return trimmed.isEmpty ? null: trimmed;
+  }
 }
-
 class TrainingRepository {
   final FirebaseFirestore _f;
 
