@@ -1,4 +1,6 @@
 // auth_service.dart
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -41,6 +43,9 @@ class AuthService {
     if (PhotoURL != null) {
       await User.updatePhotoURL(PhotoURL);
     }
+    await User.reload();
+    final doc = FirebaseFirestore.instance.collection('users').doc(User.uid);
+    await doc.set({'DisplayName': DisplayName,'pfpURL': PhotoURL, 'updatedAt': FieldValue.serverTimestamp()},SetOptions(merge:true));
   }
 
   Future<void> ensureUserDoc(User user) async {
