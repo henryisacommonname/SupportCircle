@@ -43,8 +43,7 @@ class TrainingScreenState extends State<TrainingScreen> {
           }
           final modules = snap.data ?? const <TrainingModule>[];
           final completion = _completionOf(modules);
-          final pctText =
-              '${(completion * 100).round()}% of modules completed';
+          final pctText = '${(completion * 100).round()}% of modules completed';
           return ListView(
             padding: EdgeInsets.all(16),
             children: [
@@ -113,7 +112,8 @@ class TrainingModuleCard extends StatelessWidget {
   final VoidCallback? onTap;
   final VoidCallback? onReview;
 
-  const TrainingModuleCard({super.key, 
+  const TrainingModuleCard({
+    super.key,
     required this.module,
     required this.onTap,
     required this.onReview,

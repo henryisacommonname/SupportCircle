@@ -132,10 +132,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
   @override
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.of(context).size;
-    final panelWidth = math.min(
-      math.max(mediaSize.width * 0.42, 260.0),
-      360.0,
-    );
+    final panelWidth = math.min(math.max(mediaSize.width * 0.42, 260.0), 360.0);
 
     return Stack(
       children: [
@@ -186,9 +183,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
                         horizontal: 14,
                         vertical: 10,
                       ),
-                      textStyle: Theme.of(context)
-                          .textTheme
-                          .labelMedium
+                      textStyle: Theme.of(context).textTheme.labelMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -207,9 +202,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
       padding: const EdgeInsets.only(right: 12),
       child: Material(
         elevation: 8,
-        borderRadius: const BorderRadius.horizontal(
-          right: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
         clipBehavior: Clip.antiAlias,
         color: Theme.of(context).colorScheme.surface,
         child: Column(
@@ -321,10 +314,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
-    required this.isUser,
-    required this.text,
-  });
+  const _MessageBubble({required this.isUser, required this.text});
 
   final bool isUser;
   final String text;
