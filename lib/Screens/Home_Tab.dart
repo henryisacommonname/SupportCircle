@@ -13,9 +13,21 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 12),
           QuickActionsRow(),
           const SizedBox(height: 12),
-          const SectionHeader(Title: 'Resources'),
+          const SectionHeader(Title: 'Shortcuts'),
           const SizedBox(height: 8),
-          ..._mockResources.map((r) => ResourceCard(Resource: r)),
+          ShortcutCard(
+            icon: Icons.school_outlined,
+            title: 'Resume Training',
+            subtitle: 'Jump back into the latest module',
+            onTap: () => Navigator.of(context).pushNamed('/training'),
+          ),
+          const SizedBox(height: 8),
+          ShortcutCard(
+            icon: Icons.edit,
+            title: 'Edit Profile',
+            subtitle: 'Update your info instantly',
+            onTap: () => Navigator.of(context).pushNamed('/profile/edit'),
+          ),
         ],
       ),
     );
@@ -157,54 +169,58 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-class ResourceCard extends StatelessWidget {
-  final resource Resource;
-  const ResourceCard({super.key, required this.Resource});
+class ShortcutCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const ShortcutCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      color: scheme.surfaceVariant.withOpacity(0.35),
       elevation: 0,
-      child: ListTile(
-        leading: Icon(Resource.ResourceIcon),
-        onTap: () => Navigator.of(
-          context,
-        ).pushNamed("/Resources", arguments: Resource.ID),
-        title: Text(
-          Resource.Title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Icon(icon, size: 28, color: scheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        color: scheme.onSurfaceVariant.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
         ),
-        subtitle: Text(Resource.Subtitle),
-        trailing: const Icon(Icons.chevron_right),
       ),
     );
   }
 }
-
-class resource {
-  final String ID;
-  final String Title;
-  final String Subtitle;
-  final IconData ResourceIcon;
-  const resource({
-    required this.ID,
-    required this.Title,
-    required this.Subtitle,
-    required this.ResourceIcon,
-  });
-}
-
-const _mockResources = <resource>[
-  resource(
-    ID: 'child-dev-guide',
-    Title: 'Child Development Guide',
-    Subtitle: 'Understanding child behavior',
-    ResourceIcon: Icons.menu_book_outlined,
-  ),
-  resource(
-    ID: 'parenting-classes',
-    Title: 'Parenting Classes',
-    Subtitle: 'Learn effective techniques',
-    ResourceIcon: Icons.school_outlined,
-  ),
-];

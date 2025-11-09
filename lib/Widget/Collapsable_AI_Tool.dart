@@ -23,12 +23,10 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
   @override
   void initState() {
     super.initState();
-    _controller.addListener(_handleComposerChange);
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_handleComposerChange);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -114,15 +112,8 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
     }
   }
 
-  void _handleComposerChange() {
-    final value = _controller.value;
-    if (value.text.isEmpty && value.composing.isValid) {
-      _controller.value = value.copyWith(composing: TextRange.empty);
-    }
-  }
-
   void _resetComposer() {
-    _controller.value = const TextEditingValue();
+    _controller.clear();
   }
 
   void _scrollToBottom() {
@@ -175,8 +166,9 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
         ),
         Positioned(
           left: 0,
-          top: 0,
+          bottom: 0,
           child: SafeArea(
+            top: false,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: AnimatedOpacity(

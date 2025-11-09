@@ -33,10 +33,10 @@ class MyApp extends StatelessWidget {
         if (child == null) {
           return const SizedBox.shrink();
         }
-        return Stack(
-          children: [
-            child,
-            CollapsibleChat(api: _chatApi),
+        return Overlay(
+          initialEntries: [
+            OverlayEntry(builder: (_) => child),
+            OverlayEntry(builder: (_) => CollapsibleChat(api: _chatApi)),
           ],
         );
       },
