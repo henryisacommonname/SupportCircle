@@ -166,7 +166,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
         ),
         Positioned(
           left: 0,
-          bottom: 0,
+          bottom: 48,
           child: SafeArea(
             top: false,
             child: Padding(
