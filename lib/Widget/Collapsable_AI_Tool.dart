@@ -14,8 +14,6 @@ class CollapsibleChat extends StatefulWidget {
 }
 
 class _CollapsibleChatState extends State<CollapsibleChat> {
-  static const double _handleWidth = 36;
-
   bool _isOpen = false;
   bool _isBusy = false;
   final _controller = TextEditingController();
@@ -89,6 +87,33 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
     setState(() => _isOpen = !_isOpen);
   }
 
+  void _closePanel() {
+    if (!_isOpen) {
+      return;
+    }
+    setState(() => _isOpen = false);
+  }
+
+  void _handleHorizontalDragUpdate(DragUpdateDetails details) {
+    if (!_isOpen) {
+      return;
+    }
+    final delta = details.primaryDelta ?? 0;
+    if (delta < -8) {
+      _closePanel();
+    }
+  }
+
+  void _handleHorizontalDragEnd(DragEndDetails details) {
+    if (!_isOpen) {
+      return;
+    }
+    final velocity = details.primaryVelocity ?? 0;
+    if (velocity < -400) {
+      _closePanel();
+    }
+  }
+
   void _handleComposerChange() {
     final value = _controller.value;
     if (value.text.isEmpty && value.composing.isValid) {
@@ -128,30 +153,22 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
           curve: Curves.easeInOutCubic,
           top: 0,
           bottom: 0,
-          left: _isOpen ? 0 : -panelWidth + _handleWidth + 12,
+          left: _isOpen ? 0 : -panelWidth - 16,
           child: SafeArea(
             child: SizedBox(
               width: panelWidth,
-              child: Row(
-                children: [
-                  _ChatHandle(
-                    isOpen: _isOpen,
-                    onTap: _togglePanel,
-                    width: _handleWidth,
+              child: GestureDetector(
+                onHorizontalDragUpdate: _handleHorizontalDragUpdate,
+                onHorizontalDragEnd: _handleHorizontalDragEnd,
+                child: IgnorePointer(
+                  ignoring: !_isOpen,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: _isOpen ? 1 : 0,
+                    curve: Curves.easeIn,
+                    child: _buildPanel(context),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: IgnorePointer(
-                      ignoring: !_isOpen,
-                      child: AnimatedOpacity(
-                        duration: const Duration(milliseconds: 200),
-                        opacity: _isOpen ? 1 : 0,
-                        curve: Curves.easeIn,
-                        child: _buildPanel(context),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -260,6 +277,16 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
                 style: theme.textTheme.titleMedium,
               ),
             ),
+            Semantics(
+              label: 'Close assistant',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                color: theme.colorScheme.onPrimaryContainer,
+                visualDensity: VisualDensity.compact,
+                onPressed: _closePanel,
+              ),
+            ),
           ],
         ),
       ),
@@ -296,45 +323,6 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
                 : const Icon(Icons.send),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ChatHandle extends StatelessWidget {
-  const _ChatHandle({
-    required this.isOpen,
-    required this.onTap,
-    required this.width,
-  });
-
-  final bool isOpen;
-  final VoidCallback onTap;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: width,
-      child: Center(
-        child: Material(
-          color: theme.colorScheme.primary,
-          elevation: 3,
-          shape: const StadiumBorder(),
-          child: InkWell(
-            onTap: onTap,
-            customBorder: const StadiumBorder(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
-              child: Icon(
-                isOpen ? Icons.chevron_left : Icons.chat_bubble_outline,
-                color: theme.colorScheme.onPrimary,
-                size: width * 0.75,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
