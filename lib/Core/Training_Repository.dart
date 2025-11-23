@@ -79,11 +79,12 @@ class TrainingModule {
       body: D['body'] as String?,
     );
   }
-  static String? ResolveImage(String? URL){
+  static String? ResolveImage(String? URL) {
     final trimmed = URL?.trim() ?? '';
-    return trimmed.isEmpty ? null: trimmed;
+    return trimmed.isEmpty ? null : trimmed;
   }
 }
+
 class TrainingRepository {
   final FirebaseFirestore _f;
 

@@ -45,7 +45,11 @@ class AuthService {
     }
     await User.reload();
     final doc = FirebaseFirestore.instance.collection('users').doc(User.uid);
-    await doc.set({'DisplayName': DisplayName,'pfpURL': PhotoURL, 'updatedAt': FieldValue.serverTimestamp()},SetOptions(merge:true));
+    await doc.set({
+      'DisplayName': DisplayName,
+      'pfpURL': PhotoURL,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   Future<void> ensureUserDoc(User user) async {
