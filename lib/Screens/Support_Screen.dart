@@ -160,6 +160,20 @@ class localResourceCardState extends State<LocalResourceCard> {
           ),
         )
         .toSet();
+
+    final position = userPosition;
+    if (position != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('current-location'),
+          position: LatLng(position.latitude, position.longitude),
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueViolet,
+          ),
+          infoWindow: const InfoWindow(title: "Current Location")
+        ),
+      );
+    }
     return markers;
   }
 

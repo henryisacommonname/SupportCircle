@@ -1,4 +1,0 @@
-# Copy to android/local.properties (kept git-ignored) and fill with your real key
-sdk.dir=C:\\Android
-flutter.sdk=C:\\flutter
-GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY
