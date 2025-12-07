@@ -204,13 +204,15 @@ class localResourceCardState extends State<LocalResourceCard> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
+              child: SizedBox(
+                height: 260,
+                width: double.infinity,
                 child: Stack(
                   children: [
                     AspectRatio(
                       aspectRatio: 16 / 9,
                       child: GoogleMap(
+                        mapType: MapType.normal,
                         initialCameraPosition: CameraPosition(
                           target: userPosition != null
                               ? LatLng(
@@ -271,7 +273,12 @@ class localResourceCardState extends State<LocalResourceCard> {
                         },
                   icon: const Icon(Icons.location_searching),
                   label: Text(buttonLabel),
-                ),
+                ), const SizedBox(width: 12,),
+               if (userPosition != null)
+                  Text(
+                    'Lat: ${userPosition!.latitude.toStringAsFixed(3)}, '
+                    'Lng: ${userPosition!.longitude.toStringAsFixed(3)}',
+                  ),
               ],
             ),
           ],
