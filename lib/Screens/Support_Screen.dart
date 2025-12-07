@@ -78,6 +78,12 @@ class localResourceCardState extends State<LocalResourceCard> {
   bool LocationDenied = false;
   String? statusmessage;
 
+  @override
+  void initState() {
+    super.initState();
+    LocationRequester();
+  }
+
   Future<void> LocationRequester() async {
     setState(() {
       RequestLocation = true;
@@ -90,6 +96,7 @@ class localResourceCardState extends State<LocalResourceCard> {
         if (!mounted) return;
         setState(() {
           statusmessage = "Turn on Location Services to Enable Map!";
+          LocationDenied = false;
         });
         showSnack("Turn on Location Services to Enable Map!");
         return;
@@ -105,6 +112,7 @@ class localResourceCardState extends State<LocalResourceCard> {
         setState(() {
           statusmessage =
               "Location is Blocked, If you wish to use Location Services, Please turn on Location.";
+          LocationDenied = true;
         });
         return;
       }
@@ -112,7 +120,8 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (Permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() {
-          statusmessage = "Location permission deneid";
+          statusmessage = "Location permission denied";
+          LocationDenied = true;
         });
         return;
       }
@@ -170,7 +179,7 @@ class localResourceCardState extends State<LocalResourceCard> {
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueViolet,
           ),
-          infoWindow: const InfoWindow(title: "Current Location")
+          infoWindow: const InfoWindow(title: "Current Location"),
         ),
       );
     }
@@ -180,6 +189,13 @@ class localResourceCardState extends State<LocalResourceCard> {
   @override
   Widget build(BuildContext context) {
     const nycCenter = LatLng(40.7128, -74.0060);
+
+    final buttonLabel = LocationDenied
+        ? 'Open Settings'
+        : userPosition == null
+        ? 'Enable Location'
+        : 'Refresh';
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -190,18 +206,73 @@ class localResourceCardState extends State<LocalResourceCard> {
               borderRadius: BorderRadius.circular(6),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: userPosition != null
-                        ? LatLng(
-                            userPosition!.latitude,
-                            userPosition!.longitude,
-                          )
-                        : nycCenter,
-                    zoom: 5,
-                  ),
+                child: Stack(
+                  children: [
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: userPosition != null
+                              ? LatLng(
+                                  userPosition!.latitude,
+                                  userPosition!.longitude,
+                                )
+                              : nycCenter,
+                          zoom: 5,
+                        ),
+                        markers: BuildMarkers(),
+                        onMapCreated: (controller) {
+                          mapController = controller;
+                          final position = userPosition;
+                          if (position != null) {
+                            mapController?.moveCamera(
+                              CameraUpdate.newLatLng(
+                                LatLng(position.latitude, position.longitude),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                    Positioned(
+                      child: Material(
+                        child: IconButton(
+                          onPressed: RequestLocation ? null : LocationRequester,
+                          icon: const Icon(Icons.my_location),
+                        ),
+                      ),
+                    ),
+                    if (RequestLocation)
+                      Positioned.fill(
+                        child: Container(
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            if (statusmessage != null) Text(statusmessage!),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: RequestLocation
+                      ? null
+                      : () async {
+                          if (LocationDenied) {
+                            await Geolocator.openAppSettings();
+                            return;
+                          }
+                          await LocationRequester();
+                        },
+                  icon: const Icon(Icons.location_searching),
+                  label: Text(buttonLabel),
+                ),
+              ],
             ),
           ],
         ),
