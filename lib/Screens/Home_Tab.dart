@@ -191,7 +191,7 @@ class ShortcutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      color: scheme.surfaceVariant.withOpacity(0.35),
+      color: scheme.surfaceContainerHighest.withOpacity(0.35),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
