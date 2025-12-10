@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../Core/Services/Google_Maps.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -42,44 +45,21 @@ class LocalResourceCard extends StatefulWidget {
 }
 
 class localResourceCardState extends State<LocalResourceCard> {
-  final List<CommunityMarker> _events = const [
-    CommunityMarker(
-      id: 'samaritan-house',
-      name: 'Samaritan House Pantry',
-      time: '10:00 AM',
-      location: LatLng(37.5566, -122.3042),
-    ),
-    CommunityMarker(
-      id: 'shoreline',
-      name: 'Shoreline Cleanup',
-      time: '9:00 AM',
-      location: LatLng(37.6397, -122.3980),
-    ),
-    CommunityMarker(
-      id: 'library-tutoring',
-      name: 'Library Study Buddies',
-      time: '4:00 PM',
-      location: LatLng(37.4852, -122.2364),
-    ),
-    CommunityMarker(
-      id: 'community-garden',
-      name: 'Community Garden Build',
-      time: '8:30 AM',
-      location: LatLng(37.4530, -122.1817),
-    ),
-    CommunityMarker(
-      id: 'shelter-meal',
-      name: 'Shelter Meal Service',
-      time: '6:00 PM',
-      location: LatLng(37.4969, -122.2197),
-    ),
-  ];
+  List<CommunityMarker> _events = const [];
+  final GoogleMapsService OpportunityFinder = GoogleMapsService();
 
   GoogleMapController? mapController;
   Position? userPosition;
   bool RequestLocation = false;
   bool LocationDenied = false;
   String? statusmessage;
+  bool LoadingPlaces = false;
+
+  @override
+  void initState() {
+    super.initState();
+    LocationRequester();
+  }
 
   @override
   void initState() {
@@ -123,7 +103,11 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (Permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() {
+<<<<<<< HEAD
           statusmessage = "Location permission deneid";
+=======
+          statusmessage = "Location permission denied";
+>>>>>>> 79d7cde9fa429ca0227fc79f5a189faee91cbe4a
           LocationDenied = true;
         });
         return;
@@ -135,13 +119,24 @@ class localResourceCardState extends State<LocalResourceCard> {
       setState(() {
         userPosition = position;
         LocationDenied = false;
-        statusmessage = "Showing possible Community Service opportunities!";
+        statusmessage = "Showing possible Community Service opportunities!";  
       });
+<<<<<<< HEAD
       mapController?.animateCamera(
         CameraUpdate.newCameraPosition(
           CameraPosition(
             target: LatLng(position.latitude, position.longitude),
             zoom: 12,
+=======
+      await LoadingEvents(position);
+      if (userPosition != null) {
+        mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(userPosition!.latitude, userPosition!.longitude),
+              zoom: 5.0,
+            ),
+>>>>>>> 79d7cde9fa429ca0227fc79f5a189faee91cbe4a
           ),
         ),
       );
@@ -154,6 +149,40 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (mounted) {
         setState(() {
           RequestLocation = false;
+        });
+      }
+    }
+  }
+
+  Future<void> LoadingEvents(Position userPosition) async {
+    setState(() {
+      LoadingPlaces = true;
+      statusmessage = "Finding events near you!";
+    });
+    try {
+      final places = await OpportunityFinder.findCommunityEvents(userPosition);
+      if (!mounted) return;
+      setState(() {
+        _events = places
+            .map(
+              (place) => CommunityMarker(
+                id: place.placeId,
+                name: place.name,
+                location: place.location,
+                time: "WIP",
+              ),
+            )
+            .toList();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        statusmessage = "Could not find nearby opprtunities";
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          LoadingPlaces = false;
         });
       }
     }
@@ -193,8 +222,9 @@ class localResourceCardState extends State<LocalResourceCard> {
     final buttonLabel = LocationDenied
         ? 'Open Settings'
         : userPosition == null
-            ? 'Enable Location'
-            : 'Refresh';
+
+        ? 'Enable Location'
+        : 'Refresh';
 
     return Card(
       child: Padding(
@@ -203,45 +233,41 @@ class localResourceCardState extends State<LocalResourceCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
               child: SizedBox(
                 height: 260,
                 width: double.infinity,
                 child: Stack(
                   children: [
-                    GoogleMap(
-                      mapType: MapType.normal,
-                      initialCameraPosition: CameraPosition(
-                        target: userPosition != null
-                            ? LatLng(
-                                userPosition!.latitude,
-                                userPosition!.longitude,
-                              )
-                            : nycCenter,
-                        zoom: userPosition != null ? 12 : 5,
+                    AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: GoogleMap(
+                        mapType: MapType.normal,
+                        initialCameraPosition: CameraPosition(
+                          target: userPosition != null
+                              ? LatLng(
+                                  userPosition!.latitude,
+                                  userPosition!.longitude,
+                                )
+                              : nycCenter,
+                          zoom: 5,
+                        ),
+                        markers: BuildMarkers(),
+                        onMapCreated: (controller) {
+                          mapController = controller;
+                          final position = userPosition;
+                          if (position != null) {
+                            mapController?.moveCamera(
+                              CameraUpdate.newLatLng(
+                                LatLng(position.latitude, position.longitude),
+                              ),
+                            );
+                          }
+                        },
                       ),
-                      markers: BuildMarkers(),
-                      myLocationEnabled: userPosition != null,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      onMapCreated: (controller) {
-                        mapController = controller;
-                        final position = userPosition;
-                        if (position != null) {
-                          mapController?.moveCamera(
-                            CameraUpdate.newLatLng(
-                              LatLng(position.latitude, position.longitude),
-                            ),
-                          );
-                        }
-                      },
                     ),
                     Positioned(
-                      bottom: 12,
-                      right: 12,
                       child: Material(
-                        color: Colors.white,
-                        shape: const CircleBorder(),
                         child: IconButton(
                           onPressed: RequestLocation ? null : LocationRequester,
                           icon: const Icon(Icons.my_location),
@@ -251,7 +277,6 @@ class localResourceCardState extends State<LocalResourceCard> {
                     if (RequestLocation)
                       Positioned.fill(
                         child: Container(
-                          color: Colors.black26,
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
