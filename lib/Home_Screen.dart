@@ -35,6 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: pages[index],
       bottomNavigationBar: SafeArea(
+        top: false,
+        bottom: false,
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
           backgroundColor: Theme.of(context).colorScheme.surface,

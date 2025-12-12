@@ -61,12 +61,6 @@ class localResourceCardState extends State<LocalResourceCard> {
     LocationRequester();
   }
 
-  @override
-  void initState() {
-    super.initState();
-    LocationRequester();
-  }
-
   Future<void> LocationRequester() async {
     setState(() {
       RequestLocation = true;
@@ -103,11 +97,7 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (Permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() {
-<<<<<<< HEAD
-          statusmessage = "Location permission deneid";
-=======
           statusmessage = "Location permission denied";
->>>>>>> 79d7cde9fa429ca0227fc79f5a189faee91cbe4a
           LocationDenied = true;
         });
         return;
@@ -121,13 +111,6 @@ class localResourceCardState extends State<LocalResourceCard> {
         LocationDenied = false;
         statusmessage = "Showing possible Community Service opportunities!";  
       });
-<<<<<<< HEAD
-      mapController?.animateCamera(
-        CameraUpdate.newCameraPosition(
-          CameraPosition(
-            target: LatLng(position.latitude, position.longitude),
-            zoom: 12,
-=======
       await LoadingEvents(position);
       if (userPosition != null) {
         mapController?.animateCamera(
@@ -136,10 +119,9 @@ class localResourceCardState extends State<LocalResourceCard> {
               target: LatLng(userPosition!.latitude, userPosition!.longitude),
               zoom: 5.0,
             ),
->>>>>>> 79d7cde9fa429ca0227fc79f5a189faee91cbe4a
           ),
-        ),
-      );
+        );
+      }
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -218,6 +200,7 @@ class localResourceCardState extends State<LocalResourceCard> {
   @override
   Widget build(BuildContext context) {
     const nycCenter = LatLng(40.7128, -74.0060);
+    final mapHeight = max(360.0, MediaQuery.sizeOf(context).height * 0.55);
 
     final buttonLabel = LocationDenied
         ? 'Open Settings'
@@ -235,12 +218,11 @@ class localResourceCardState extends State<LocalResourceCard> {
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: SizedBox(
-                height: 260,
+                height: mapHeight,
                 width: double.infinity,
                 child: Stack(
                   children: [
-                    AspectRatio(
-                      aspectRatio: 16 / 9,
+                    Positioned.fill(
                       child: GoogleMap(
                         mapType: MapType.normal,
                         initialCameraPosition: CameraPosition(
@@ -305,11 +287,6 @@ class localResourceCardState extends State<LocalResourceCard> {
                   label: Text(buttonLabel),
                 ),
                 const SizedBox(width: 12),
-                if (userPosition != null)
-                  Text(
-                    'Lat: ${userPosition!.latitude.toStringAsFixed(3)}, '
-                    'Lng: ${userPosition!.longitude.toStringAsFixed(3)}',
-                  ),
               ],
             ),
           ],
