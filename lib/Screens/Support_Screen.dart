@@ -53,7 +53,8 @@ class LocalResourceCard extends StatefulWidget {
 }
 
 class localResourceCardState extends State<LocalResourceCard> {
-  List<CommunityMarker> _events = const [];
+  
+  List<PlaceResult> _places = const [];
   final GoogleMapsService OpportunityFinder = GoogleMapsService();
   final Map<String, SummaryText> AIsummarystate = {};
 
@@ -189,18 +190,10 @@ class localResourceCardState extends State<LocalResourceCard> {
             );
       if (!mounted) return;
       setState(() {
-        _events = places
-            .map(
-              (place) => CommunityMarker(
-                id: place.placeId,
-                name: place.name,
-                location: place.location,
-                time: "WIP",
-              ),
-            )
-            .toList();
-        _placesLastResultCount = places.length;
-        _placesCallDuration = stopwatch.elapsed;
+      _places = Placeswithdistance;
+      _placesLastResultCount = places.length;
+      _placesCallDuration = stopwatch.elapsed;
+       
       });
     } catch (e) {
       if (!mounted) return;
@@ -218,13 +211,16 @@ class localResourceCardState extends State<LocalResourceCard> {
     }
   }
 
-  Set<Marker> BuildMarkers() {
-    final markers = _events
+  Set<Marker> BuildMarkers() { 
+     final markers = _places
         .map(
-          (event) => Marker(
-            markerId: MarkerId(event.id),
-            position: event.location,
-            infoWindow: InfoWindow(title: event.name, snippet: event.time),
+          (place) => Marker(
+            markerId: MarkerId(place.placeId),
+            position: place.location,
+            infoWindow: InfoWindow(
+              title: place.name,
+              snippet: place.address ?? '',
+            ),
           ),
         )
         .toSet();
