@@ -36,12 +36,16 @@ class CommunityMarker {
   final String name;
   final LatLng location;
   final String time;
+  final String? description;
+  final String? address;
 
   const CommunityMarker({
     required this.id,
     required this.name,
     required this.location,
     required this.time,
+    this.address,
+    this.description,
   });
 }
 
@@ -170,23 +174,20 @@ class localResourceCardState extends State<LocalResourceCard> {
         );
       }
       final places = await OpportunityFinder.findCommunityEvents(userPosition);
-      final Placeswithdistance =
-          places
-              .map(
-                (place) => place.copyWith(
-                  distance: Geolocator.distanceBetween(
-                    userPosition.latitude,
-                    userPosition.longitude,
-                    place.location.latitude,
-                    place.location.longitude,
-                  ),
+      final Placeswithdistance = _sortPlacesByDistance(
+        places
+            .map(
+              (place) => place.copyWith(
+                distance: Geolocator.distanceBetween(
+                  userPosition.latitude,
+                  userPosition.longitude,
+                  place.location.latitude,
+                  place.location.longitude,
                 ),
-              )
-              .toList()
-            ..sort(
-              (place1, place2) => (place1.distance ?? double.infinity)
-                  .compareTo(place2.distance ?? double.infinity),
-            );
+              ),
+            )
+            .toList(),
+      );
       if (!mounted) return;
       setState(() {
         _places = Placeswithdistance;
@@ -248,8 +249,54 @@ class localResourceCardState extends State<LocalResourceCard> {
     return "${miles.toStringAsFixed(2)} miles";
   }
 
-  Widget buildplacecard(BuildContext context, PlaceResult place)  {
-    return Card(child: Padding(padding: const EdgeInsets.all(16),child: Column(children: [Text(place.name)],),));
+  Widget buildplacecard(BuildContext context, PlaceResult place) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    children: [
+                      Text(place.name),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Text(Numberrounder(place)),
+                          const SizedBox(height: 4),
+                        ],
+                      ),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: -8,
+                        children: [Text("TAGS GO HERE")],
+                      ),
+                      SizedBox(height: 8),
+                      Text(place.address ?? "Address unavailable"),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> buildchips(PlaceResult, place) {
+    // build tags later
+    throw UnimplementedError();
+  }
+
+  List<PlaceResult> _sortPlacesByDistance(List<PlaceResult> places) {
+    return List<PlaceResult>.from(places)..sort(
+      (a, b) => (a.distance ?? double.infinity).compareTo(
+        b.distance ?? double.infinity,
+      ),
+    );
   }
 
   @override
@@ -279,6 +326,8 @@ class localResourceCardState extends State<LocalResourceCard> {
                     Positioned.fill(
                       child: GoogleMap(
                         mapType: MapType.normal,
+                        myLocationButtonEnabled: true,
+                        myLocationEnabled: true,
                         initialCameraPosition: CameraPosition(
                           target: userPosition != null
                               ? LatLng(
@@ -286,7 +335,7 @@ class localResourceCardState extends State<LocalResourceCard> {
                                   userPosition!.longitude,
                                 )
                               : nycCenter,
-                          zoom: 5,
+                          zoom: userPosition != null ? 13 : 5,
                         ),
                         markers: BuildMarkers(),
                         onMapCreated: (controller) {
@@ -373,10 +422,30 @@ class localResourceCardState extends State<LocalResourceCard> {
                 const SizedBox(width: 12),
               ],
             ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Column(
+                  children: [
+                    Text("Nearby Opportunities to you!"),
+                    const SizedBox(height: 2),
+                    Text("${_places.length}"),
+                  ],
+                ),
+              ],
+            ),
+            if (LoadingPlaces) const LinearProgressIndicator(minHeight: 4),
+            if (!LoadingPlaces && _places.isEmpty)
+              const Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text("no Nearby Locations found."),
+              ),
+              ..._places.map((place) => buildplacecard(context, place)),
           ],
         ),
       ),
     );
+
   }
 
   void showSnack(String message) {
