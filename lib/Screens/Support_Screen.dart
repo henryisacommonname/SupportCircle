@@ -271,14 +271,6 @@ class localResourceCardState extends State<LocalResourceCard> {
                         },
                       ),
                     ),
-                    Positioned(
-                      child: Material(
-                        child: IconButton(
-                          onPressed: RequestLocation ? null : LocationRequester,
-                          icon: const Icon(Icons.my_location),
-                        ),
-                      ),
-                    ),
                     if (RequestLocation)
                       Positioned.fill(
                         child: Container(
