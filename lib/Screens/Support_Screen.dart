@@ -15,13 +15,20 @@ class SupportScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Support')),
       body: ListView(
         padding: const EdgeInsets.all(16),
-        children: const [
-          LocalResourceCard(),
-          SizedBox(height: 16),
-        ],
+        children: const [LocalResourceCard(), SizedBox(height: 16)],
       ),
     );
   }
+}
+
+enum SummaryStatus { idle, loading, success, error }
+
+class SummaryText {
+  final String? text;
+  final SummaryStatus Status;
+  final String? error;
+
+  const SummaryText({required this.Status, this.text, this.error});
 }
 
 class CommunityMarker {
@@ -48,6 +55,7 @@ class LocalResourceCard extends StatefulWidget {
 class localResourceCardState extends State<LocalResourceCard> {
   List<CommunityMarker> _events = const [];
   final GoogleMapsService OpportunityFinder = GoogleMapsService();
+  final Map<String, SummaryText> AIsummarystate = {};
 
   GoogleMapController? mapController;
   Position? userPosition;
@@ -116,7 +124,7 @@ class localResourceCardState extends State<LocalResourceCard> {
       setState(() {
         userPosition = position;
         LocationDenied = false;
-        statusmessage = "Showing possible Community Service opportunities!";  
+        statusmessage = "Showing possible Community Service opportunities!";
       });
       await LoadingEvents(position);
       if (userPosition != null) {
@@ -162,6 +170,23 @@ class localResourceCardState extends State<LocalResourceCard> {
         );
       }
       final places = await OpportunityFinder.findCommunityEvents(userPosition);
+      final Placeswithdistance =
+          places
+              .map(
+                (place) => place.copyWith(
+                  distance: Geolocator.distanceBetween(
+                    userPosition.latitude,
+                    userPosition.longitude,
+                    place.location.latitude,
+                    place.location.longitude,
+                  ),
+                ),
+              )
+              .toList()
+            ..sort(
+              (place1, place2) => (place1.distance ?? double.infinity)
+                  .compareTo(place2.distance ?? double.infinity),
+            );
       if (!mounted) return;
       setState(() {
         _events = places
@@ -228,7 +253,6 @@ class localResourceCardState extends State<LocalResourceCard> {
     final buttonLabel = LocationDenied
         ? 'Open Settings'
         : userPosition == null
-
         ? 'Enable Location'
         : 'Refresh';
 

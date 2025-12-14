@@ -42,10 +42,9 @@ class GoogleMapsService {
 
     final Response = await http.get(URI);
     if (Response.statusCode != 200) {
-      final bodyPreview =
-          Response.body.length > 400
-              ? '${Response.body.substring(0, 400)}...'
-              : Response.body;
+      final bodyPreview = Response.body.length > 400
+          ? '${Response.body.substring(0, 400)}...'
+          : Response.body;
       throw Exception(
         "Places API HTTP ${Response.statusCode}. Body: $bodyPreview",
       );
@@ -74,6 +73,7 @@ class PlaceResult {
   final String? address;
   final LatLng location;
   final double? rating;
+  final double? distance;
 
   PlaceResult({
     required this.placeId,
@@ -81,6 +81,7 @@ class PlaceResult {
     required this.location,
     this.address,
     this.rating,
+    this.distance,
   });
 
   factory PlaceResult.fromJson(Map<String, dynamic> json) {
@@ -95,6 +96,18 @@ class PlaceResult {
         (location['lat'] as num?)?.toDouble() ?? 0,
         (location['lng'] as num?)?.toDouble() ?? 0,
       ),
+      distance: null,
+    );
+  }
+
+  PlaceResult copyWith({double? distance, String? address, double? rating}) {
+    return PlaceResult(
+      placeId: placeId,
+      name: name,
+      location: location,
+      address: address ?? this.address,
+      rating: rating ?? this.rating,
+      distance: distance ?? this.distance,
     );
   }
 }
