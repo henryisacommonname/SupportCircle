@@ -53,7 +53,6 @@ class LocalResourceCard extends StatefulWidget {
 }
 
 class localResourceCardState extends State<LocalResourceCard> {
-  
   List<PlaceResult> _places = const [];
   final GoogleMapsService OpportunityFinder = GoogleMapsService();
   final Map<String, SummaryText> AIsummarystate = {};
@@ -190,10 +189,9 @@ class localResourceCardState extends State<LocalResourceCard> {
             );
       if (!mounted) return;
       setState(() {
-      _places = Placeswithdistance;
-      _placesLastResultCount = places.length;
-      _placesCallDuration = stopwatch.elapsed;
-       
+        _places = Placeswithdistance;
+        _placesLastResultCount = places.length;
+        _placesCallDuration = stopwatch.elapsed;
       });
     } catch (e) {
       if (!mounted) return;
@@ -211,8 +209,8 @@ class localResourceCardState extends State<LocalResourceCard> {
     }
   }
 
-  Set<Marker> BuildMarkers() { 
-     final markers = _places
+  Set<Marker> BuildMarkers() {
+    final markers = _places
         .map(
           (place) => Marker(
             markerId: MarkerId(place.placeId),
@@ -239,6 +237,19 @@ class localResourceCardState extends State<LocalResourceCard> {
       );
     }
     return markers;
+  }
+
+  String Numberrounder(PlaceResult place) {
+    final distance = place.distance;
+    if (distance == null) {
+      return "Unable to calculate distance.";
+    }
+    final miles = distance / 1609.34;
+    return "${miles.toStringAsFixed(2)} miles";
+  }
+
+  Widget buildplacecard(BuildContext context, PlaceResult place)  {
+    return Card(child: Padding(padding: const EdgeInsets.all(16),child: Column(children: [Text(place.name)],),));
   }
 
   @override
