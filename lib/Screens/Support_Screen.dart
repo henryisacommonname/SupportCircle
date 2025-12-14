@@ -21,45 +21,16 @@ class SupportScreen extends StatelessWidget {
   }
 }
 
-enum SummaryStatus { idle, loading, success, error }
-
-class SummaryText {
-  final String? text;
-  final SummaryStatus Status;
-  final String? error;
-
-  const SummaryText({required this.Status, this.text, this.error});
-}
-
-class CommunityMarker {
-  final String id;
-  final String name;
-  final LatLng location;
-  final String time;
-  final String? description;
-  final String? address;
-
-  const CommunityMarker({
-    required this.id,
-    required this.name,
-    required this.location,
-    required this.time,
-    this.address,
-    this.description,
-  });
-}
-
 class LocalResourceCard extends StatefulWidget {
   const LocalResourceCard({super.key});
 
   @override
-  State<LocalResourceCard> createState() => localResourceCardState();
+  State<LocalResourceCard> createState() => _LocalResourceCardState();
 }
 
-class localResourceCardState extends State<LocalResourceCard> {
+class _LocalResourceCardState extends State<LocalResourceCard> {
   List<PlaceResult> _places = const [];
-  final GoogleMapsService OpportunityFinder = GoogleMapsService();
-  final Map<String, SummaryText> AIsummarystate = {};
+  final GoogleMapsService _mapsService = GoogleMapsService();
 
   GoogleMapController? mapController;
   Position? userPosition;
@@ -91,10 +62,10 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (!MapServiceEnabled) {
         if (!mounted) return;
         setState(() {
-          statusmessage = "Turn on Location Services to Enable Map!";
+          statusmessage = 'Turn on Location Services to Enable Map!';
           LocationDenied = false;
         });
-        showSnack("Turn on Location Services to Enable Map!");
+        showSnack('Turn on Location Services to Enable Map!');
         return;
       }
 
@@ -107,7 +78,7 @@ class localResourceCardState extends State<LocalResourceCard> {
         if (!mounted) return;
         setState(() {
           statusmessage =
-              "Location is Blocked, If you wish to use Location Services, Please turn on Location.";
+              'Location is Blocked, If you wish to use Location Services, Please turn on Location.';
           LocationDenied = true;
         });
         return;
@@ -116,7 +87,7 @@ class localResourceCardState extends State<LocalResourceCard> {
       if (Permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() {
-          statusmessage = "Location permission denied";
+          statusmessage = 'Location permission denied';
           LocationDenied = true;
         });
         return;
@@ -128,7 +99,7 @@ class localResourceCardState extends State<LocalResourceCard> {
       setState(() {
         userPosition = position;
         LocationDenied = false;
-        statusmessage = "Showing possible Community Service opportunities!";
+        statusmessage = 'Showing possible Community Service opportunities!';
       });
       await LoadingEvents(position);
       if (userPosition != null) {
@@ -136,7 +107,7 @@ class localResourceCardState extends State<LocalResourceCard> {
           CameraUpdate.newCameraPosition(
             CameraPosition(
               target: LatLng(userPosition!.latitude, userPosition!.longitude),
-              zoom: 5.0,
+              zoom: 13.0,
             ),
           ),
         );
@@ -144,7 +115,7 @@ class localResourceCardState extends State<LocalResourceCard> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        statusmessage = "General Location Inaccessable.";
+        statusmessage = 'General Location Inaccessible.';
       });
     } finally {
       if (mounted) {
@@ -158,7 +129,7 @@ class localResourceCardState extends State<LocalResourceCard> {
   Future<void> LoadingEvents(Position userPosition) async {
     setState(() {
       LoadingPlaces = true;
-      statusmessage = "Finding events near you!";
+      statusmessage = 'Finding events near you!';
       _placesCallInFlight = true;
       _placesCallStartedAt = DateTime.now();
       _placesCallDuration = null;
@@ -173,7 +144,7 @@ class localResourceCardState extends State<LocalResourceCard> {
           'lat=${userPosition.latitude}, lng=${userPosition.longitude}',
         );
       }
-      final places = await OpportunityFinder.findCommunityEvents(userPosition);
+      final places = await _mapsService.findCommunityEvents(userPosition);
       final Placeswithdistance = _sortPlacesByDistance(
         places
             .map(
@@ -197,7 +168,7 @@ class localResourceCardState extends State<LocalResourceCard> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        statusmessage = "Could not find nearby opprtunities";
+        statusmessage = 'Could not find nearby opportunities';
         _placesLastError = e.toString();
       });
     } finally {
@@ -233,52 +204,159 @@ class localResourceCardState extends State<LocalResourceCard> {
           icon: BitmapDescriptor.defaultMarkerWithHue(
             BitmapDescriptor.hueViolet,
           ),
-          infoWindow: const InfoWindow(title: "Current Location"),
+          infoWindow: const InfoWindow(title: 'Current Location'),
         ),
       );
     }
     return markers;
   }
 
-  String Numberrounder(PlaceResult place) {
+  String distanceLabel(PlaceResult place) {
     final distance = place.distance;
     if (distance == null) {
-      return "Unable to calculate distance.";
+      return 'Distance unavailable';
     }
     final miles = distance / 1609.34;
-    return "${miles.toStringAsFixed(2)} miles";
+    return '${miles.toStringAsFixed(2)} mi';
+  }
+
+  Color _statusColor(PlaceResult place, BuildContext context) {
+    if (place.isOpen == true) {
+      return Colors.green.shade600;
+    }
+    if (place.isOpen == false) {
+      return Colors.red.shade600;
+    }
+    return Theme.of(context).colorScheme.outline;
+  }
+
+  String _statusLabel(PlaceResult place) {
+    if (place.isOpen == true) return 'Open';
+    if (place.isOpen == false) return 'Closed';
+    return 'Status unknown';
+  }
+
+  List<Widget> _buildChips(PlaceResult place) {
+    const ignored = {
+      'point_of_interest',
+      'establishment',
+      'premise',
+      'food',
+    };
+    final tags = place.types
+        .where((t) => !ignored.contains(t))
+        .take(3)
+        .map((type) {
+      final label = type.replaceAll('_', ' ');
+      return Chip(
+        label: Text(label),
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+      );
+    }).toList();
+
+    if (tags.isEmpty) {
+      return [
+        Chip(
+          label: Text(
+            'Community service',
+            style: TextStyle(color: Colors.blue.shade900),
+          ),
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 6),
+        ),
+      ];
+    }
+    return tags;
   }
 
   Widget buildplacecard(BuildContext context, PlaceResult place) {
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(place.name),
+                      Text(
+                        place.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Text(Numberrounder(place)),
-                          const SizedBox(height: 4),
+                          Text(
+                            distanceLabel(place),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.circle,
+                            size: 8,
+                            color: _statusColor(place, context),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _statusLabel(place),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(color: _statusColor(place, context)),
+                          ),
+                          if (place.rating != null) ...[
+                            const SizedBox(width: 12),
+                            const Icon(Icons.star_rounded,
+                                color: Colors.amber, size: 18),
+                            Text(place.rating!.toStringAsFixed(1)),
+                          ],
                         ],
                       ),
+                      const SizedBox(height: 8),
                       Wrap(
                         spacing: 6,
                         runSpacing: -8,
-                        children: [Text("TAGS GO HERE")],
+                        children: _buildChips(place),
                       ),
-                      SizedBox(height: 8),
-                      Text(place.address ?? "Address unavailable"),
+                      const SizedBox(height: 8),
+                      Text(
+                        place.address ?? 'Address unavailable',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ),
                 ),
+                IconButton(
+                  tooltip: 'Center on map',
+                  icon: const Icon(Icons.map_outlined),
+                  onPressed: () {
+                    mapController?.animateCamera(
+                      CameraUpdate.newLatLngZoom(place.location, 14),
+                    );
+                  },
+                ),
               ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () {
+                  mapController?.animateCamera(
+                    CameraUpdate.newLatLngZoom(place.location, 15),
+                  );
+                },
+                child: const Text('Get Directions'),
+              ),
             ),
           ],
         ),
@@ -286,17 +364,12 @@ class localResourceCardState extends State<LocalResourceCard> {
     );
   }
 
-  List<Widget> buildchips(PlaceResult, place) {
-    // build tags later
-    throw UnimplementedError();
-  }
-
   List<PlaceResult> _sortPlacesByDistance(List<PlaceResult> places) {
-    return List<PlaceResult>.from(places)..sort(
-      (a, b) => (a.distance ?? double.infinity).compareTo(
-        b.distance ?? double.infinity,
-      ),
-    );
+    return List<PlaceResult>.from(places)
+      ..sort(
+        (a, b) => (a.distance ?? double.infinity)
+            .compareTo(b.distance ?? double.infinity),
+      );
   }
 
   @override
@@ -307,8 +380,8 @@ class localResourceCardState extends State<LocalResourceCard> {
     final buttonLabel = LocationDenied
         ? 'Open Settings'
         : userPosition == null
-        ? 'Enable Location'
-        : 'Refresh';
+            ? 'Enable Location'
+            : 'Refresh';
 
     return Card(
       child: Padding(
@@ -351,9 +424,40 @@ class localResourceCardState extends State<LocalResourceCard> {
                         },
                       ),
                     ),
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            )
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            '${_places.length} locations nearby',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ),
                     if (RequestLocation)
                       Positioned.fill(
                         child: Container(
+                          color: Colors.black12,
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
@@ -393,7 +497,7 @@ class localResourceCardState extends State<LocalResourceCard> {
                           'resultCount: ${_placesLastResultCount != null ? _placesLastResultCount.toString() : '-'}',
                         ),
                         Text(
-                          'apiKeyPresent: ${OpportunityFinder.apiKey.isNotEmpty}',
+                          'apiKeyPresent: ${_mapsService.apiKey.isNotEmpty}',
                         ),
                         if (_placesLastError != null)
                           Text('error: $_placesLastError'),
@@ -420,32 +524,52 @@ class localResourceCardState extends State<LocalResourceCard> {
                   label: Text(buttonLabel),
                 ),
                 const SizedBox(width: 12),
+                if (userPosition != null)
+                  Text(
+                    'Lat: ${userPosition!.latitude.toStringAsFixed(3)}, '
+                    'Lng: ${userPosition!.longitude.toStringAsFixed(3)}',
+                  ),
               ],
             ),
             const SizedBox(height: 12),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Nearby Opportunities to you!"),
+                    Text(
+                      'Nearby locations',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 2),
-                    Text("${_places.length}"),
+                    Text(
+                      '${_places.length} found',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _places = _sortPlacesByDistance(_places);
+                    });
+                  },
+                  child: const Text('Sort by distance'),
                 ),
               ],
             ),
             if (LoadingPlaces) const LinearProgressIndicator(minHeight: 4),
             if (!LoadingPlaces && _places.isEmpty)
               const Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text("no Nearby Locations found."),
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Text('No nearby locations found yet.'),
               ),
-              ..._places.map((place) => buildplacecard(context, place)),
+            ..._places.map((place) => buildplacecard(context, place)),
           ],
         ),
       ),
     );
-
   }
 
   void showSnack(String message) {
