@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -54,6 +55,12 @@ class localResourceCardState extends State<LocalResourceCard> {
   bool LocationDenied = false;
   String? statusmessage;
   bool LoadingPlaces = false;
+
+  DateTime? _placesCallStartedAt;
+  Duration? _placesCallDuration;
+  int? _placesLastResultCount;
+  String? _placesLastError;
+  bool _placesCallInFlight = false;
 
   @override
   void initState() {
@@ -140,8 +147,20 @@ class localResourceCardState extends State<LocalResourceCard> {
     setState(() {
       LoadingPlaces = true;
       statusmessage = "Finding events near you!";
+      _placesCallInFlight = true;
+      _placesCallStartedAt = DateTime.now();
+      _placesCallDuration = null;
+      _placesLastResultCount = null;
+      _placesLastError = null;
     });
     try {
+      final stopwatch = Stopwatch()..start();
+      if (kDebugMode) {
+        debugPrint(
+          '[SupportScreen] Calling Places API via GoogleMapsService.findCommunityEvents() '
+          'lat=${userPosition.latitude}, lng=${userPosition.longitude}',
+        );
+      }
       final places = await OpportunityFinder.findCommunityEvents(userPosition);
       if (!mounted) return;
       setState(() {
@@ -155,16 +174,20 @@ class localResourceCardState extends State<LocalResourceCard> {
               ),
             )
             .toList();
+        _placesLastResultCount = places.length;
+        _placesCallDuration = stopwatch.elapsed;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         statusmessage = "Could not find nearby opprtunities";
+        _placesLastError = e.toString();
       });
     } finally {
       if (mounted) {
         setState(() {
           LoadingPlaces = false;
+          _placesCallInFlight = false;
         });
       }
     }
@@ -270,6 +293,44 @@ class localResourceCardState extends State<LocalResourceCard> {
             ),
             const SizedBox(height: 12),
             if (statusmessage != null) Text(statusmessage!),
+            if (kDebugMode) ...[
+              const SizedBox(height: 8),
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: DefaultTextStyle.merge(
+                    style: const TextStyle(fontFamily: 'monospace'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('DEBUG: Places API'),
+                        const SizedBox(height: 6),
+                        Text(
+                          'called: ${_placesCallStartedAt != null ? 'yes' : 'no'}'
+                          '${_placesCallStartedAt != null ? ' @ ${_placesCallStartedAt!.toIso8601String()}' : ''}',
+                        ),
+                        Text('inFlight: $_placesCallInFlight'),
+                        Text(
+                          'duration: ${_placesCallDuration != null ? '${_placesCallDuration!.inMilliseconds}ms' : '-'}',
+                        ),
+                        Text(
+                          'resultCount: ${_placesLastResultCount != null ? _placesLastResultCount.toString() : '-'}',
+                        ),
+                        Text(
+                          'apiKeyPresent: ${OpportunityFinder.apiKey.isNotEmpty}',
+                        ),
+                        if (_placesLastError != null)
+                          Text('error: $_placesLastError'),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             Row(
               children: [

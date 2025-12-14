@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
@@ -32,15 +33,25 @@ class GoogleMapsService {
       },
     );
 
+    if (kDebugMode) {
+      final sanitizedQuery = Map<String, String>.from(URI.queryParameters)
+        ..remove('key');
+      final sanitizedUri = URI.replace(queryParameters: sanitizedQuery);
+      debugPrint('[GoogleMapsService] Places nearbysearch GET $sanitizedUri');
+    }
+
     final Response = await http.get(URI);
     if (Response.statusCode != 200) {
-      throw Exception("Expection: places API failed, ${Response.statusCode}}");
+      throw Exception("Expection: places API failed, ${Response.statusCode}");
     }
 
     final data = jsonDecode(Response.body) as Map<String, dynamic>;
 
     if (data['status'] != "OK" && data['status'] != "ZERO_RESULTS") {
       throw Exception('Places API error: ${data['status']}');
+    }
+    if (kDebugMode) {
+      debugPrint('[GoogleMapsService] Places status=${data['status']}');
     }
     final results = data['results'] as List<dynamic>? ?? <dynamic>[];
     return results.map((raw) => PlaceResult.fromJson(raw)).toList();
@@ -68,7 +79,7 @@ class PlaceResult {
 
   factory PlaceResult.fromJson(Map<String, dynamic> json) {
     final geometry = json['geometry'] as Map<String, dynamic>? ?? {};
-    final location = json['geometry'] as Map<String, dynamic>? ?? {};
+    final location = geometry['location'] as Map<String, dynamic>? ?? {};
     return PlaceResult(
       placeId: json['place_id'] as String? ?? json['id'] as String? ?? '',
       name: json['name'] as String? ?? "community Service Event!",
