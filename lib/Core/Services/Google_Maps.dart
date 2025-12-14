@@ -23,9 +23,9 @@ class GoogleMapsService {
     }
     final URI = Uri.https(
       "maps.googleapis.com",
-      "/maps/api/nearbysearch/json",
+      "/maps/api/place/nearbysearch/json",
       <String, String>{
-        "location": "${userPosition.latitude}, ${userPosition.longitude}",
+        "location": "${userPosition.latitude},${userPosition.longitude}",
         "radius": "32000",
         "keyword": "community service, kitchen, cleanup, non-profit, volunteer",
         "opennow": "true",
@@ -42,7 +42,13 @@ class GoogleMapsService {
 
     final Response = await http.get(URI);
     if (Response.statusCode != 200) {
-      throw Exception("Expection: places API failed, ${Response.statusCode}");
+      final bodyPreview =
+          Response.body.length > 400
+              ? '${Response.body.substring(0, 400)}...'
+              : Response.body;
+      throw Exception(
+        "Places API HTTP ${Response.statusCode}. Body: $bodyPreview",
+      );
     }
 
     final data = jsonDecode(Response.body) as Map<String, dynamic>;
