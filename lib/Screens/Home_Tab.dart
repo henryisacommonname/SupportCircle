@@ -1,8 +1,11 @@
 //Home_Tab.dart
 import 'package:flutter/material.dart';
+import '../Core/Services/Resources_Repository.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
+
+  static final ResourcesRepository resources_repository = ResourcesRepository();
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -15,7 +18,12 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 12),
           const SectionHeader(Title: 'Resources'),
           const SizedBox(height: 8),
-          ..._mockResources.map((r) => ResourceCard(Resource: r)),
+          StreamBuilder<List<AppResource>>(stream: resources_repository.Featuredresources(max: 2), builder: (context,snapshot) {
+           if (snapshot.connectionState == ConnectionState.waiting) {return const ResourcePlaceholder();} 
+           if (snapshot.hasError) {return Text("Unable to return resources.");}
+           final resources = snapshot.data ?? const [];
+            return Column(children: resources.map((r) => ResourceCard(Resource: r)).toList());
+          }),
           const SizedBox(height: 12),
           const SectionHeader(Title: 'Shortcuts'),
           const SizedBox(height: 8),
@@ -230,63 +238,46 @@ class ShortcutCard extends StatelessWidget {
   }
 }
 
-class ResourceCard extends StatelessWidget {
-  final resource Resource;
-  const ResourceCard({super.key, required this.Resource});
-
+class ResourcePlaceholder extends StatelessWidget {
+  const ResourcePlaceholder();
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final fill =
-        Resource.backgroundColor ??
-        scheme.surfaceContainerHighest.withOpacity(0.35);
-    return Card(
+    return const Card(
       elevation: 0,
-      color: fill,
-      surfaceTintColor: Colors.transparent,
       child: ListTile(
-        leading: Icon(Resource.ResourceIcon),
-        onTap: () => Navigator.of(
-          context,
-        ).pushNamed("/Resources", arguments: Resource.ID),
-        title: Text(
-          Resource.Title,
-          style: const TextStyle(fontWeight: FontWeight.w700),
+        leading: SizedBox(
+          height: 200,
+          width: 200,
+          child: CircularProgressIndicator(),
         ),
-        subtitle: Text(Resource.Subtitle),
-        trailing: const Icon(Icons.chevron_right),
+        title: Text("Loading Resources"),
       ),
     );
   }
 }
 
-class resource {
-  final String ID;
-  final String Title;
-  final String Subtitle;
-  final IconData ResourceIcon;
-  final Color? backgroundColor;
-  const resource({
-    required this.ID,
-    required this.Title,
-    required this.Subtitle,
-    required this.ResourceIcon,
-    this.backgroundColor,
-  });
-}
+class ResourceCard extends StatelessWidget {
+  final AppResource Resource;
+  const ResourceCard({super.key, required this.Resource});
 
-const _mockResources = <resource>[
-  resource(
-    ID: 'child-dev-guide',
-    Title: 'Child Development Guide',
-    Subtitle: 'Understanding child behavior',
-    ResourceIcon: Icons.menu_book_outlined,
-    backgroundColor: Colors.blueGrey,
-  ),
-  resource(
-    ID: 'parenting-classes',
-    Title: 'Parenting Classes',
-    Subtitle: 'Learn effective techniques',
-    ResourceIcon: Icons.school_outlined,
-  ),
-];
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+      child: ListTile(
+        leading: Icon(Resource.icon),
+        onTap: () =>
+            Navigator.of(context).pushNamed(throw UnimplementedError()),
+        title: Text(
+          Resource.title,
+          style: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+        subtitle: Text(Resource.subtitle),
+        trailing: const Icon(Icons.chevron_right),
+      ),
+    );
+  }
+}
