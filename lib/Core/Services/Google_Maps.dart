@@ -11,10 +11,11 @@ class GoogleMapsService {
   final String apiKey;
 
   GoogleMapsService({String? apiKeyOverride})
-      : apiKey = apiKeyOverride ??
-            googleMapsApiKey.ifEmpty(
-              const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-            );
+    : apiKey =
+          apiKeyOverride ??
+          googleMapsApiKey.ifEmpty(
+            const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+          );
 
   Future<List<PlaceResult>> findCommunityEvents(Position userPosition) async {
     if (apiKey.isEmpty) {
@@ -44,7 +45,9 @@ class GoogleMapsService {
       final bodyPreview = response.body.length > 400
           ? '${response.body.substring(0, 400)}...'
           : response.body;
-      throw Exception('Places API HTTP ${response.statusCode}. Body: $bodyPreview');
+      throw Exception(
+        'Places API HTTP ${response.statusCode}. Body: $bodyPreview',
+      );
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -95,7 +98,8 @@ class PlaceResult {
       address: json['vicinity'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
       isOpen: openingHours != null ? openingHours['open_now'] as bool? : null,
-      types: (json['types'] as List<dynamic>?)
+      types:
+          (json['types'] as List<dynamic>?)
               ?.map((type) => type.toString())
               .toList() ??
           const [],

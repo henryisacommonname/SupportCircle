@@ -12,7 +12,9 @@ class SupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Support')),
+      appBar: AppBar(
+        title: const Text('Find volunteer opportunities nears you!'),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [LocalResourceCard(), SizedBox(height: 16)],
@@ -237,16 +239,10 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
   }
 
   List<Widget> _buildChips(PlaceResult place) {
-    const ignored = {
-      'point_of_interest',
-      'establishment',
-      'premise',
-      'food',
-    };
-    final tags = place.types
-        .where((t) => !ignored.contains(t))
-        .take(3)
-        .map((type) {
+    const ignored = {'point_of_interest', 'establishment', 'premise', 'food'};
+    final tags = place.types.where((t) => !ignored.contains(t)).take(3).map((
+      type,
+    ) {
       final label = type.replaceAll('_', ' ');
       return Chip(
         label: Text(label),
@@ -294,9 +290,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                         children: [
                           Text(
                             distanceLabel(place),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
+                            style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(width: 8),
@@ -308,15 +302,16 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                           const SizedBox(width: 4),
                           Text(
                             _statusLabel(place),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: _statusColor(place, context)),
                           ),
                           if (place.rating != null) ...[
                             const SizedBox(width: 12),
-                            const Icon(Icons.star_rounded,
-                                color: Colors.amber, size: 18),
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Colors.amber,
+                              size: 18,
+                            ),
                             Text(place.rating!.toStringAsFixed(1)),
                           ],
                         ],
@@ -365,11 +360,11 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
   }
 
   List<PlaceResult> _sortPlacesByDistance(List<PlaceResult> places) {
-    return List<PlaceResult>.from(places)
-      ..sort(
-        (a, b) => (a.distance ?? double.infinity)
-            .compareTo(b.distance ?? double.infinity),
-      );
+    return List<PlaceResult>.from(places)..sort(
+      (a, b) => (a.distance ?? double.infinity).compareTo(
+        b.distance ?? double.infinity,
+      ),
+    );
   }
 
   @override
@@ -380,8 +375,8 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     final buttonLabel = LocationDenied
         ? 'Open Settings'
         : userPosition == null
-            ? 'Enable Location'
-            : 'Refresh';
+        ? 'Enable Location'
+        : 'Refresh';
 
     return Card(
       child: Padding(
@@ -436,7 +431,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                               color: Colors.black12,
                               blurRadius: 6,
                               offset: Offset(0, 2),
-                            )
+                            ),
                           ],
                         ),
                         child: Padding(
@@ -446,9 +441,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                           ),
                           child: Text(
                             '${_places.length} locations nearby',
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelLarge
+                            style: Theme.of(context).textTheme.labelLarge
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),

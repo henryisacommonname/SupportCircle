@@ -234,12 +234,12 @@ class ResourceCard extends StatelessWidget {
   final resource Resource;
   const ResourceCard({super.key, required this.Resource});
 
-
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final fill = Resource.backgroundColor ?? scheme.surfaceContainerHighest.withOpacity(0.35);
+    final fill =
+        Resource.backgroundColor ??
+        scheme.surfaceContainerHighest.withOpacity(0.35);
     return Card(
       elevation: 0,
       color: fill,
@@ -257,8 +257,6 @@ class ResourceCard extends StatelessWidget {
         trailing: const Icon(Icons.chevron_right),
       ),
     );
-
-
   }
 }
 
@@ -283,7 +281,7 @@ const _mockResources = <resource>[
     Title: 'Child Development Guide',
     Subtitle: 'Understanding child behavior',
     ResourceIcon: Icons.menu_book_outlined,
-    backgroundColor: Colors.blueGrey
+    backgroundColor: Colors.blueGrey,
   ),
   resource(
     ID: 'parenting-classes',
