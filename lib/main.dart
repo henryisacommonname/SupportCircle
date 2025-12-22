@@ -11,6 +11,7 @@ import 'Core/Services/chatgpt_api_service.dart';
 import 'Widget/Collapsable_AI_Tool.dart';
 import 'firebase_options.dart';
 import 'Home_Screen.dart';
+import 'Screens/Resources_Screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,7 @@ class MyApp extends StatelessWidget {
         "/Register": (context) => RegisterScreen(),
         "/Home": (context) => HomeScreen(),
         "/profile/edit": (context) => const ProfileEditingScreen(),
+        ResourcesScreen.routeName: (context) => const ResourcesScreen(),
       },
     );
   }

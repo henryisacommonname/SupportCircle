@@ -1,6 +1,8 @@
 //Home_Tab.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../Core/Services/Resources_Repository.dart';
+import 'Resources_Screen.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
@@ -18,12 +20,47 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 12),
           const SectionHeader(Title: 'Resources'),
           const SizedBox(height: 8),
-          StreamBuilder<List<AppResource>>(stream: resources_repository.Featuredresources(max: 2), builder: (context,snapshot) {
-           if (snapshot.connectionState == ConnectionState.waiting) {return const ResourcePlaceholder();} 
-           if (snapshot.hasError) {return Text("Unable to return resources.");}
-           final resources = snapshot.data ?? const [];
-            return Column(children: resources.map((r) => ResourceCard(Resource: r)).toList());
-          }),
+          StreamBuilder<List<AppResource>>(
+            stream: resources_repository.Featuredresources(max: 3),
+            builder: (context, snapshot) {
+              if (kDebugMode) {
+                debugPrint(
+                  '[HomeTab] resources state=${snapshot.connectionState} '
+                  'hasError=${snapshot.hasError} '
+                  'count=${snapshot.data?.length ?? 0}',
+                );
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const ResourcePlaceholder();
+              }
+              if (snapshot.hasError) {
+                return Card(
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Text(
+                      'Unable to load resources.\n${snapshot.error}',
+                    ),
+                  ),
+                );
+              }
+              final resources = snapshot.data ?? const [];
+              if (resources.isEmpty) {
+                return const Card(
+                  elevation: 0,
+                  child: Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text('No resources available yet.'),
+                  ),
+                );
+              }
+              return Column(
+                children: resources
+                    .map((r) => ResourceCard(Resource: r))
+                    .toList(),
+              );
+            },
+          ),
           const SizedBox(height: 12),
           const SectionHeader(Title: 'Shortcuts'),
           const SizedBox(height: 8),
@@ -246,9 +283,9 @@ class ResourcePlaceholder extends StatelessWidget {
       elevation: 0,
       child: ListTile(
         leading: SizedBox(
-          height: 200,
-          width: 200,
-          child: CircularProgressIndicator(),
+          height: 24,
+          width: 24,
+          child: CircularProgressIndicator(strokeWidth: 2.5),
         ),
         title: Text("Loading Resources"),
       ),
@@ -269,8 +306,9 @@ class ResourceCard extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       child: ListTile(
         leading: Icon(Resource.icon),
-        onTap: () =>
-            Navigator.of(context).pushNamed(throw UnimplementedError()),
+        onTap: () => Navigator.of(
+          context,
+        ).pushNamed(ResourcesScreen.routeName, arguments: Resource.id),
         title: Text(
           Resource.title,
           style: const TextStyle(fontWeight: FontWeight.w700),

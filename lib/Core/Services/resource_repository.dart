@@ -57,9 +57,14 @@ class ResourceRepository {
 
   Stream<List<AppResource>> _queryResources({int? limit}) {
     Query<Map<String, dynamic>> query =
-        _firestore.collection('resources').orderBy('order');
+        _firestore.collection('Resources');
     if (limit != null) {
       query = query.limit(limit);
+    }
+    if (kDebugMode) {
+      debugPrint(
+        '[Resources] subscribe collection=Resources limit=${limit ?? 'none'}',
+      );
     }
     return query.snapshots(includeMetadataChanges: kDebugMode).map((snap) {
       if (kDebugMode) {

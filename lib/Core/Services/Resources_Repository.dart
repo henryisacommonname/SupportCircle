@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AppResource {
@@ -27,40 +28,63 @@ class AppResource {
   }
 
   static IconData iconFromName(String? icon_string) {
-    switch ((icon_string ?? " ").toLowerCase()) {
+    switch ((icon_string ?? '').toLowerCase()) {
+      case 'book':
+      case 'menu_book':
+      case 'menu_book_outlined':
+        return Icons.menu_book_outlined;
+      case 'school':
+      case 'school_outlined':
+        return Icons.school_outlined;
+      case 'call':
+      case 'phone':
+        return Icons.call;
       default:
-        return Icons.article;
+        return Icons.article_outlined;
     }
   }
 }
 
 class ResourcesRepository {
-  final FirebaseFirestore Resourcedatabase;
+  final FirebaseFirestore _firestore;
 
   ResourcesRepository({FirebaseFirestore? resourcedatabase})
-    : Resourcedatabase = resourcedatabase ?? FirebaseFirestore.instance;
+    : _firestore = resourcedatabase ?? FirebaseFirestore.instance;
 
   Stream<List<AppResource>> Featuredresources({int max = 2}) =>
       searchResources(max: max);
   Stream<List<AppResource>> Allresources() => searchResources();
 
   Stream<List<AppResource>> searchResources({int? max}) {
-    Query<Map<String, dynamic>> Search = Resourcedatabase.collection(
-      "Resources",
-    ).orderBy('order');
+    Query<Map<String, dynamic>> query = _firestore.collection("Resources");
 
     if (max != null) {
-      Search = Search.limit(max);
+      query = query.limit(max);
     }
 
-    return Search.snapshots().map(
-      (snap) => snap.docs
+    if (kDebugMode) {
+      debugPrint(
+        '[Resources] subscribe collection=Resources limit=${max ?? 'none'}',
+      );
+    }
+
+    return query.snapshots(includeMetadataChanges: kDebugMode).map((snap) {
+      if (kDebugMode) {
+        debugPrint(
+          '[Resources] count=${snap.docs.length} cache=${snap.metadata.isFromCache}',
+        );
+      }
+      return snap.docs
           .map(
             (doc) => AppResource.fromDoc(
               doc as DocumentSnapshot<Map<String, dynamic>>,
             ),
           )
-          .toList(),
-    );
+          .toList();
+    }).handleError((error) {
+      if (kDebugMode) {
+        debugPrint('[Resources] stream error: $error');
+      }
+    });
   }
 }
