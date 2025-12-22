@@ -38,9 +38,7 @@ class HomeTab extends StatelessWidget {
                   elevation: 0,
                   child: Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(
-                      'Unable to load resources.\n${snapshot.error}',
-                    ),
+                    child: Text('Unable to load resources.\n${snapshot.error}'),
                   ),
                 );
               }

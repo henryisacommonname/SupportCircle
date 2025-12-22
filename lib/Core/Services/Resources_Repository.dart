@@ -68,23 +68,26 @@ class ResourcesRepository {
       );
     }
 
-    return query.snapshots(includeMetadataChanges: kDebugMode).map((snap) {
-      if (kDebugMode) {
-        debugPrint(
-          '[Resources] count=${snap.docs.length} cache=${snap.metadata.isFromCache}',
-        );
-      }
-      return snap.docs
-          .map(
-            (doc) => AppResource.fromDoc(
-              doc as DocumentSnapshot<Map<String, dynamic>>,
-            ),
-          )
-          .toList();
-    }).handleError((error) {
-      if (kDebugMode) {
-        debugPrint('[Resources] stream error: $error');
-      }
-    });
+    return query
+        .snapshots(includeMetadataChanges: kDebugMode)
+        .map((snap) {
+          if (kDebugMode) {
+            debugPrint(
+              '[Resources] count=${snap.docs.length} cache=${snap.metadata.isFromCache}',
+            );
+          }
+          return snap.docs
+              .map(
+                (doc) => AppResource.fromDoc(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ),
+              )
+              .toList();
+        })
+        .handleError((error) {
+          if (kDebugMode) {
+            debugPrint('[Resources] stream error: $error');
+          }
+        });
   }
 }
