@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
   MyApp({super.key});
 
   final ChatApiService _chatApi = ChatApiService(
-    "https://a23e4be5-1075-4548-baf7-22e80ab91722-00-f46fp7e8sg7i.worf.replit.dev/",
+    "https://ai-backend-sdmc.onrender.com",
   );
 
   @override
