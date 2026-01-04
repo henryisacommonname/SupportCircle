@@ -32,7 +32,7 @@ class TrainingModule {
   final String id;
   final String title;
   final String subtitle;
-  final String imageURL;
+  final String? imageURL;
   final int minutes;
   final int order;
   final ModuleStatus status;
@@ -41,13 +41,13 @@ class TrainingModule {
     required this.id,
     required this.title,
     required this.subtitle,
-    required this.imageURL,
     required this.minutes,
     required this.order,
     this.status = ModuleStatus.notStarted,
     this.contentType,
     this.contentURL,
     this.body,
+    this.imageURL,
   });
 
   bool get hasimage => (imageURL ?? '').trim().isNotEmpty;
@@ -71,9 +71,9 @@ class TrainingModule {
       id: doc.id,
       title: D['title'] as String,
       subtitle: D['subtitle'] as String,
-      imageURL: D['imageURL'] as String,
+      imageURL: ResolveImage(D['imageURL'] as String?),
       minutes: (D['minutes'] as num).toInt(),
-      order: (D['order'] as num ?? 0).toInt(),
+      order: (D['order'] as num?)?.toInt() ?? 0,
       contentType: D['contentType'] as String?,
       contentURL: D['contentURL'] as String?,
       body: D['body'] as String?,

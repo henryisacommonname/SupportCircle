@@ -13,14 +13,17 @@ class TrainingScreen extends StatefulWidget {
 class TrainingScreenState extends State<TrainingScreen> {
   final _repo = TrainingRepository();
 
-  double _completionOf(List<TrainingModule> Modules) {
-    if (Modules.isEmpty) {
-      return 0;
-    }
-    final Done = Modules.where(
-      (M) => M.status == ModuleStatus.completed,
-    ).length;
-    return Done / Modules.length;
+  ({int completed, int total, double ratio}) _progressOf(
+    List<TrainingModule> modules,
+  ) {
+    final total = modules.length;
+    if (total == 0) return (completed: 0, total: 0, ratio: 0);
+
+    final completed = modules
+        .where((m) => m.status == ModuleStatus.completed)
+        .length;
+    final ratio = completed / total;
+    return (completed: completed, total: total, ratio: ratio);
   }
 
   @override
@@ -30,6 +33,7 @@ class TrainingScreenState extends State<TrainingScreen> {
       return const Scaffold(body: Center(child: Text('Please sign in,')));
     }
     final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text("Training")),
       body: StreamBuilder(
@@ -42,8 +46,9 @@ class TrainingScreenState extends State<TrainingScreen> {
             return Center(child: Text("ERROR -${snap.error}"));
           }
           final modules = snap.data ?? const <TrainingModule>[];
-          final completion = _completionOf(modules);
-          final pctText = '${(completion * 100).round()}% of modules completed';
+          final progress = _progressOf(modules);
+          final pctText =
+              '${progress.completed} of ${progress.total} modules completed';
           return ListView(
             padding: EdgeInsets.all(16),
             children: [
@@ -65,14 +70,16 @@ class TrainingScreenState extends State<TrainingScreen> {
                     const SizedBox(height: 10),
                     ClipRRect(
                       child: LinearProgressIndicator(
-                        value: completion,
+                        value: progress.ratio,
                         minHeight: 10,
-                        backgroundColor: Colors.deepPurple,
+                        backgroundColor: scheme.surfaceVariant,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(scheme.primary),
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('Replace Me!!'),
+                    Text(pctText),
                   ],
                 ),
               ),
@@ -102,6 +109,25 @@ class TrainingScreenState extends State<TrainingScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _ModuleImagePlaceholder extends StatelessWidget {
+  const _ModuleImagePlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      color: scheme.surfaceVariant,
+      child: Center(
+        child: Icon(
+          Icons.image_not_supported_outlined,
+          size: 42,
+          color: scheme.onSurfaceVariant.withOpacity(0.7),
+        ),
       ),
     );
   }
@@ -141,6 +167,13 @@ class TrainingModuleCard extends StatelessWidget {
     }
     final hasHeaderImage = module.hasimage;
     Widget StatusBadge() => Container(child: Text(badgeText));
+    final headerImage = hasHeaderImage
+        ? Image.network(
+            module.imageURL!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const _ModuleImagePlaceholder(),
+          )
+        : const _ModuleImagePlaceholder();
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -152,7 +185,7 @@ class TrainingModuleCard extends StatelessWidget {
                 ClipRRect(
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: Image.network(module.imageURL, fit: BoxFit.cover),
+                    child: headerImage,
                   ),
                 ),
                 Positioned(
