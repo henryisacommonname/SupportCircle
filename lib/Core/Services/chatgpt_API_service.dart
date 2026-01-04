@@ -39,18 +39,22 @@ class ChatApiService {
   }) async {
     http.Response response;
     try {
-      response = await http.post(
-        _resolve('chat_json'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'system_prompt': systemPrompt,
-          'user_prompt': userPrompt,
-        }),
-      ).timeout(_timeout);
+      response = await http
+          .post(
+            _resolve('chat_json'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'system_prompt': systemPrompt,
+              'user_prompt': userPrompt,
+            }),
+          )
+          .timeout(_timeout);
     } on TimeoutException catch (_) {
-      throw ChatApiExpection('Please wait for our assistant to wake up.', isWakingup: true);
-    }
-    on Exception catch (e) {
+      throw ChatApiExpection(
+        'Please wait for our assistant to wake up.',
+        isWakingup: true,
+      );
+    } on Exception catch (e) {
       throw ChatApiExpection('Network error: $e');
     }
 

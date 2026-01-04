@@ -1,5 +1,6 @@
 import 'dart:math' as math;
-
+import 'dart:async';
+import 'package:draft_1/Core/Services/chatgpt_api_service.dart';
 import 'package:flutter/material.dart';
 
 import '../Core/Services/chatgpt_api_service.dart';
@@ -16,6 +17,8 @@ class CollapsibleChat extends StatefulWidget {
 class _CollapsibleChatState extends State<CollapsibleChat> {
   bool _isOpen = false;
   bool _isBusy = false;
+  String? statusmessage;
+  Timer? Warmuptimer;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
@@ -27,6 +30,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 
   @override
   void dispose() {
+    Warmuptimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -37,20 +41,23 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
     if (text.isEmpty || _isBusy) {
       return;
     }
-
+    Warmuptimer?.cancel();
     setState(() {
       _isBusy = true;
+      statusmessage = null;
       _messages.add({"role": "user", "content": text});
+    });
+    Warmuptimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted || _isBusy) return;
+      setState(() {
+        statusmessage = ("Server staring, please await.");
+      });
     });
     _resetComposer();
     _scrollToBottom();
 
     try {
-      final response = await widget.api.chatJson(
-        systemPrompt:
-            "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}",
-        userPrompt: text,
-      );
+      final response = await callwithWakeupretry(text);
       final reply = (response['reply'] ?? '').toString();
 
       if (!mounted) {
@@ -59,6 +66,20 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 
       setState(() {
         _messages.add({"role": "assistant", "content": reply});
+      });
+      _scrollToBottom();
+    } on ChatApiExpection catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _messages.add({
+          "role": "assistant",
+          "content": error.isWakingup
+              ? 'Server is waking up. Please try again in a moment.'
+              : 'Sorry, something went wrong. (${error.message})',
+        });
+        statusmessage = null;
       });
       _scrollToBottom();
     } catch (error) {
@@ -78,6 +99,31 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
           _isBusy = false;
         });
       }
+    }
+  }
+
+  Future<Map<String, dynamic>> callwithWakeupretry(String Text) async {
+    try {
+      return await widget.api.chatJson(
+        systemPrompt:
+            "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}",
+        userPrompt: Text,
+      );
+    } on ChatApiExpection catch (error) {
+      if (!error.isWakingup) {
+        rethrow;
+      }
+      if (mounted) {
+        setState(() {
+          statusmessage = "Server Waking up, please wait.";
+        });
+      }
+
+      return await widget.api.chatJson(
+        systemPrompt:
+            "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}",
+        userPrompt: Text,
+      );
     }
   }
 
@@ -208,6 +254,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
         child: Column(
           children: [
             _buildHeader(context),
+            if (statusmessage != null) Statusbanner(message: statusmessage!),
             const Divider(height: 1),
             Expanded(
               child: ListView.builder(
@@ -340,6 +387,24 @@ class _MessageBubble extends StatelessWidget {
           text,
           style: theme.textTheme.bodyMedium?.copyWith(color: textColor),
         ),
+      ),
+    );
+  }
+}
+
+class Statusbanner extends StatelessWidget {
+  final String message;
+  Statusbanner({required this.message});
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      child: Row(
+        children: [
+          Icon(Icons.cloud_sync, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(child: Text(message)),
+        ],
       ),
     );
   }
