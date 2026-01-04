@@ -35,7 +35,12 @@ class ResourcesScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Resources",style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w300),),
+                        Text(
+                          "Resources",
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           "Check out our documents to find helpful information for your outing!",
@@ -70,7 +75,7 @@ class ResourcesScreen extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  const SizedBox(height: 12,)
+                                  const SizedBox(height: 12),
                                 ],
                               ],
                             );

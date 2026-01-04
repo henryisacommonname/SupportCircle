@@ -73,8 +73,9 @@ class TrainingScreenState extends State<TrainingScreen> {
                         value: progress.ratio,
                         minHeight: 10,
                         backgroundColor: scheme.surfaceVariant,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(scheme.primary),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          scheme.primary,
+                        ),
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -183,10 +184,7 @@ class TrainingModuleCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: headerImage,
-                  ),
+                  child: AspectRatio(aspectRatio: 16 / 9, child: headerImage),
                 ),
                 Positioned(
                   top: 10,
