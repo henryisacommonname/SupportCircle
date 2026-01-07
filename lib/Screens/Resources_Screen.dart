@@ -1,7 +1,5 @@
-import 'dart:async';
 
 import 'package:draft_1/Core/Services/Resources_Repository.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class ResourcesScreen extends StatelessWidget {
@@ -20,7 +18,7 @@ class ResourcesScreen extends StatelessWidget {
               floating: true,
               snap: true,
               backgroundColor: Colors.blueGrey,
-              foregroundColor: theme.colorScheme.onBackground,
+              foregroundColor: theme.colorScheme.onSurface,
               elevation: 0,
             ),
             SliverToBoxAdapter(
@@ -154,7 +152,7 @@ class _ResourceCardState extends State<_ResourceCard> {
                           widget.resource.title,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: scheme.onBackground,
+                            color: scheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -264,7 +262,7 @@ class _ResourceSkeletonCard extends StatelessWidget {
             height: 44,
             width: 44,
             decoration: BoxDecoration(
-              color: scheme.surfaceVariant,
+              color: scheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
           ),
@@ -292,7 +290,7 @@ class _ResourceSkeletonCard extends StatelessWidget {
         height: 12,
         width: width,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(8),
         ),
       ),

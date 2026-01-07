@@ -27,8 +27,8 @@ class AppResource {
     );
   }
 
-  static IconData iconFromName(String? icon_string) {
-    switch ((icon_string ?? '').toLowerCase()) {
+  static IconData iconFromName(String? iconString) {
+    switch ((iconString ?? '').toLowerCase()) {
       case 'book':
       case 'menu_book':
       case 'menu_book_outlined':

@@ -274,7 +274,7 @@ class ShortcutCard extends StatelessWidget {
 }
 
 class ResourcePlaceholder extends StatelessWidget {
-  const ResourcePlaceholder();
+  const ResourcePlaceholder({super.key});
   @override
   Widget build(BuildContext context) {
     return const Card(

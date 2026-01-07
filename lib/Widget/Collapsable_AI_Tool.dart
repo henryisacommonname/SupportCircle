@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:draft_1/Core/Services/chatgpt_api_service.dart';
 import 'package:flutter/material.dart';
 
-import '../Core/Services/chatgpt_api_service.dart';
 
 class CollapsibleChat extends StatefulWidget {
   const CollapsibleChat({super.key, required this.api});
@@ -394,7 +393,7 @@ class _MessageBubble extends StatelessWidget {
 
 class Statusbanner extends StatelessWidget {
   final String message;
-  Statusbanner({required this.message});
+  const Statusbanner({super.key, required this.message});
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

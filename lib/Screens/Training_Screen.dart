@@ -72,7 +72,7 @@ class TrainingScreenState extends State<TrainingScreen> {
                       child: LinearProgressIndicator(
                         value: progress.ratio,
                         minHeight: 10,
-                        backgroundColor: scheme.surfaceVariant,
+                        backgroundColor: scheme.surfaceContainerHighest,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           scheme.primary,
                         ),
@@ -122,7 +122,7 @@ class _ModuleImagePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Container(
-      color: scheme.surfaceVariant,
+      color: scheme.surfaceContainerHighest,
       child: Center(
         child: Icon(
           Icons.image_not_supported_outlined,
