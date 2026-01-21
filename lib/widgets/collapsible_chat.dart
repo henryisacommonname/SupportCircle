@@ -1,13 +1,14 @@
-import 'dart:math' as math;
 import 'dart:async';
-import 'package:draft_1/Core/Services/chatgpt_api_service.dart';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
+import '../services/chat_api_service.dart';
 
 class CollapsibleChat extends StatefulWidget {
-  const CollapsibleChat({super.key, required this.api});
-
   final ChatApiService api;
+
+  const CollapsibleChat({super.key, required this.api});
 
   @override
   State<CollapsibleChat> createState() => _CollapsibleChatState();
@@ -16,20 +17,15 @@ class CollapsibleChat extends StatefulWidget {
 class _CollapsibleChatState extends State<CollapsibleChat> {
   bool _isOpen = false;
   bool _isBusy = false;
-  String? statusmessage;
-  Timer? Warmuptimer;
+  String? _statusMessage;
+  Timer? _warmupTimer;
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   void dispose() {
-    Warmuptimer?.cancel();
+    _warmupTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -37,91 +33,84 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 
   Future<void> _sendMessage() async {
     final text = _controller.text.trim();
-    if (text.isEmpty || _isBusy) {
-      return;
-    }
-    Warmuptimer?.cancel();
+    if (text.isEmpty || _isBusy) return;
+
+    _warmupTimer?.cancel();
     setState(() {
       _isBusy = true;
-      statusmessage = null;
-      _messages.add({"role": "user", "content": text});
+      _statusMessage = null;
+      _messages.add({'role': 'user', 'content': text});
     });
-    Warmuptimer = Timer(const Duration(seconds: 3), () {
+
+    _warmupTimer = Timer(const Duration(seconds: 3), () {
       if (!mounted || _isBusy) return;
       setState(() {
-        statusmessage = ("Server staring, please await.");
+        _statusMessage = 'Server starting, please wait.';
       });
     });
+
     _resetComposer();
     _scrollToBottom();
 
     try {
-      final response = await callwithWakeupretry(text);
+      final response = await _callWithWakeupRetry(text);
       final reply = (response['reply'] ?? '').toString();
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       setState(() {
-        _messages.add({"role": "assistant", "content": reply});
+        _messages.add({'role': 'assistant', 'content': reply});
       });
       _scrollToBottom();
-    } on ChatApiExpection catch (error) {
-      if (!mounted) {
-        return;
-      }
+    } on ChatApiException catch (error) {
+      if (!mounted) return;
       setState(() {
         _messages.add({
-          "role": "assistant",
-          "content": error.isWakingup
+          'role': 'assistant',
+          'content': error.isWakingUp
               ? 'Server is waking up. Please try again in a moment.'
               : 'Sorry, something went wrong. (${error.message})',
         });
-        statusmessage = null;
+        _statusMessage = null;
       });
       _scrollToBottom();
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _messages.add({
-          "role": "assistant",
-          "content": 'Sorry, something went wrong. ($error)',
+          'role': 'assistant',
+          'content': 'Sorry, something went wrong. ($error)',
         });
       });
       _scrollToBottom();
     } finally {
       if (mounted) {
-        setState(() {
-          _isBusy = false;
-        });
+        setState(() => _isBusy = false);
       }
     }
   }
 
-  Future<Map<String, dynamic>> callwithWakeupretry(String Text) async {
+  Future<Map<String, dynamic>> _callWithWakeupRetry(String text) async {
+    const systemPrompt =
+        "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}";
+
     try {
       return await widget.api.chatJson(
-        systemPrompt:
-            "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}",
-        userPrompt: Text,
+        systemPrompt: systemPrompt,
+        userPrompt: text,
       );
-    } on ChatApiExpection catch (error) {
-      if (!error.isWakingup) {
-        rethrow;
-      }
+    } on ChatApiException catch (error) {
+      if (!error.isWakingUp) rethrow;
+
       if (mounted) {
         setState(() {
-          statusmessage = "Server Waking up, please wait.";
+          _statusMessage = 'Server waking up, please wait.';
         });
       }
 
       return await widget.api.chatJson(
-        systemPrompt:
-            "You are a community service helper and assist users by answering their questions kindly. Return ONLY JSON of the form {'reply': string}",
-        userPrompt: Text,
+        systemPrompt: systemPrompt,
+        userPrompt: text,
       );
     }
   }
@@ -131,30 +120,20 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
   }
 
   void _closePanel() {
-    if (!_isOpen) {
-      return;
-    }
+    if (!_isOpen) return;
     setState(() => _isOpen = false);
   }
 
   void _handleHorizontalDragUpdate(DragUpdateDetails details) {
-    if (!_isOpen) {
-      return;
-    }
+    if (!_isOpen) return;
     final delta = details.primaryDelta ?? 0;
-    if (delta < -8) {
-      _closePanel();
-    }
+    if (delta < -8) _closePanel();
   }
 
   void _handleHorizontalDragEnd(DragEndDetails details) {
-    if (!_isOpen) {
-      return;
-    }
+    if (!_isOpen) return;
     final velocity = details.primaryVelocity ?? 0;
-    if (velocity < -400) {
-      _closePanel();
-    }
+    if (velocity < -400) _closePanel();
   }
 
   void _resetComposer() {
@@ -163,9 +142,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) {
-        return;
-      }
+      if (!_scrollController.hasClients) return;
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         curve: Curves.easeOutCubic,
@@ -177,7 +154,8 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
   @override
   Widget build(BuildContext context) {
     final mediaSize = MediaQuery.of(context).size;
-    final panelWidth = math.min(math.max(mediaSize.width * 0.42, 260.0), 360.0);
+    final panelWidth =
+        math.min(math.max(mediaSize.width * 0.42, 260.0), 360.0);
 
     return Stack(
       children: [
@@ -228,7 +206,9 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
                         horizontal: 14,
                         vertical: 10,
                       ),
-                      textStyle: Theme.of(context).textTheme.labelMedium
+                      textStyle: Theme.of(context)
+                          .textTheme
+                          .labelMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -253,7 +233,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
         child: Column(
           children: [
             _buildHeader(context),
-            if (statusmessage != null) Statusbanner(message: statusmessage!),
+            if (_statusMessage != null) _StatusBanner(message: _statusMessage!),
             const Divider(height: 1),
             Expanded(
               child: ListView.builder(
@@ -266,9 +246,8 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Align(
-                      alignment: isUser
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
+                      alignment:
+                          isUser ? Alignment.centerRight : Alignment.centerLeft,
                       child: _MessageBubble(
                         isUser: isUser,
                         text: message['content'] ?? '',
@@ -335,7 +314,7 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
               minLines: 1,
               maxLines: 4,
               decoration: const InputDecoration(
-                hintText: 'Ask the AI assistant…',
+                hintText: 'Ask the AI assistant...',
                 border: OutlineInputBorder(),
                 isDense: true,
               ),
@@ -360,10 +339,10 @@ class _CollapsibleChatState extends State<CollapsibleChat> {
 }
 
 class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({required this.isUser, required this.text});
-
   final bool isUser;
   final String text;
+
+  const _MessageBubble({required this.isUser, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -391,13 +370,16 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class Statusbanner extends StatelessWidget {
+class _StatusBanner extends StatelessWidget {
   final String message;
-  const Statusbanner({super.key, required this.message});
+
+  const _StatusBanner({required this.message});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
+    return Padding(
+      padding: const EdgeInsets.all(8),
       child: Row(
         children: [
           Icon(Icons.cloud_sync, color: theme.colorScheme.onSurfaceVariant),

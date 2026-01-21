@@ -1,29 +1,29 @@
-//Module_Player.dart
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../Core/Training_Repository.dart';
+import '../../models/training_module.dart';
+import '../../services/training_repository.dart';
+import '../../widgets/youtube_player.dart';
 
 class ModulePlayerScreen extends StatefulWidget {
   final TrainingModule module;
   const ModulePlayerScreen({super.key, required this.module});
 
   @override
-  State<ModulePlayerScreen> createState() => ModulePlayerScreenState();
+  State<ModulePlayerScreen> createState() => _ModulePlayerScreenState();
 }
 
-class ModulePlayerScreenState extends State<ModulePlayerScreen> {
-  late final TrainingRepository repo;
-
-  VideoPlayerController? videoController;
-  bool isLoadingVideo = false;
-  bool isMarking = false;
+class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
+  late final TrainingRepository _repo;
+  VideoPlayerController? _videoController;
+  bool _isLoadingVideo = false;
+  bool _isMarking = false;
 
   @override
   void initState() {
     super.initState();
-    repo = TrainingRepository();
+    _repo = TrainingRepository();
 
     if (widget.module.contentType == 'video' &&
         widget.module.contentURL != null &&
@@ -33,67 +33,85 @@ class ModulePlayerScreenState extends State<ModulePlayerScreen> {
   }
 
   Future<void> _initVideo(String url) async {
-    setState(() => isLoadingVideo = true);
-    final c = VideoPlayerController.networkUrl(Uri.parse(url));
-    videoController = c;
-    await c.initialize();
-    await c.setLooping(false);
-    setState(() => isLoadingVideo = false);
+    setState(() => _isLoadingVideo = true);
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    _videoController = controller;
+    await controller.initialize();
+    await controller.setLooping(false);
+    setState(() => _isLoadingVideo = false);
   }
 
   Future<void> _markComplete() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
-    setState(() => isMarking = true);
+    setState(() => _isMarking = true);
     try {
-      await repo.setStatus(
+      await _repo.setStatus(
         uid: uid,
-        moduleid: widget.module.id, // ensure repo expects moduleId (camelCase)
+        moduleId: widget.module.id,
         status: ModuleStatus.completed,
       );
-      if (mounted) Navigator.pop(context, true); // return to list
+      if (mounted) Navigator.pop(context, true);
     } finally {
-      if (mounted) setState(() => isMarking = false);
+      if (mounted) setState(() => _isMarking = false);
     }
   }
 
   @override
   void dispose() {
-    videoController?.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
+  bool get _hasYoutubeURL =>
+      widget.module.youtubeURL != null &&
+      widget.module.youtubeURL!.trim().isNotEmpty;
+
+  bool get _hasVideoURL =>
+      widget.module.contentType == 'video' &&
+      widget.module.contentURL != null &&
+      widget.module.contentURL!.trim().isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
-    final m = widget.module;
+    final module = widget.module;
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(m.title)),
+      appBar: AppBar(title: Text(module.title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (m.contentType == 'video' && m.contentURL != null)
-            _VideoSection(controller: videoController, loading: isLoadingVideo)
+          if (_hasYoutubeURL)
+            YouTubePlayerWidget(youtubeURL: module.youtubeURL)
+          else if (_hasVideoURL)
+            _VideoSection(controller: _videoController, loading: _isLoadingVideo)
           else
-            _ArticleSection(subtitle: m.subtitle, body: m.body),
+            _ArticleSection(subtitle: module.subtitle, body: module.body),
+
+          if ((_hasYoutubeURL || _hasVideoURL) &&
+              ((module.body ?? '').trim().isNotEmpty ||
+                  module.subtitle.trim().isNotEmpty)) ...[
+            const SizedBox(height: 16),
+            _ArticleSection(subtitle: module.subtitle, body: module.body),
+          ],
 
           const SizedBox(height: 16),
           FilledButton.icon(
-            onPressed: isMarking ? null : _markComplete,
-            icon: isMarking
+            onPressed: _isMarking ? null : _markComplete,
+            icon: _isMarking
                 ? const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.check_circle_outline),
-            label: Text(isMarking ? 'Marking…' : 'Mark Complete'),
+            label: Text(_isMarking ? 'Marking...' : 'Mark Complete'),
           ),
           const SizedBox(height: 8),
           Text(
-            'Takes ~${m.minutes} min',
+            'Takes ~${module.minutes} min',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -101,24 +119,24 @@ class ModulePlayerScreenState extends State<ModulePlayerScreen> {
         ],
       ),
       floatingActionButton:
-          (m.contentType == 'video' && videoController != null)
-          ? FloatingActionButton(
-              onPressed: () {
-                final v = videoController!;
-                if (v.value.isPlaying) {
-                  v.pause();
-                } else {
-                  v.play();
-                }
-                setState(() {});
-              },
-              child: Icon(
-                videoController!.value.isPlaying
-                    ? Icons.pause
-                    : Icons.play_arrow,
-              ),
-            )
-          : null,
+          (!_hasYoutubeURL && _hasVideoURL && _videoController != null)
+              ? FloatingActionButton(
+                  onPressed: () {
+                    final v = _videoController!;
+                    if (v.value.isPlaying) {
+                      v.pause();
+                    } else {
+                      v.play();
+                    }
+                    setState(() {});
+                  },
+                  child: Icon(
+                    _videoController!.value.isPlaying
+                        ? Icons.pause
+                        : Icons.play_arrow,
+                  ),
+                )
+              : null,
     );
   }
 }
@@ -142,7 +160,6 @@ class _VideoSection extends StatelessWidget {
         child: Center(child: Icon(Icons.play_disabled)),
       );
     }
-    // No rounded corners per your preference
     return AspectRatio(
       aspectRatio: controller!.value.aspectRatio == 0
           ? (16 / 9)
@@ -172,7 +189,7 @@ class _ArticleSection extends StatelessWidget {
         Text(
           safeBody.isNotEmpty
               ? safeBody
-              : 'Read the guidance above, then tap “Mark Complete” when finished.',
+              : 'Read the guidance above, then tap "Mark Complete" when finished.',
           style: theme.textTheme.bodyMedium,
         ),
       ],

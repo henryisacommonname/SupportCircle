@@ -1,49 +1,53 @@
 import 'package:flutter/material.dart';
-import '../Core/Services/auth_service.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+import '../../services/auth_service.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   String? _errorMessage;
-  bool _isloading = false;
+  bool _isLoading = false;
 
-  Future<void> _Register() async {
+  Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     setState(() {
-      _isloading = true;
+      _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      await _authService.registerWithEmail(email, password);
-      // Authgate will auto-redirect
+      await _authService.signInWithEmail(email, password);
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     } catch (e) {
       setState(() {
-        _errorMessage = "Register failed: ${e.toString()}";
+        _errorMessage = 'Login failed: ${e.toString()}';
       });
     } finally {
-      setState(() => _isloading = false);
+      setState(() => _isLoading = false);
     }
   }
 
-  void _GotoLogin() {
-    Navigator.pop(context);
+  void _goToRegister() {
+    Navigator.pushNamed(context, '/register');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -51,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(labelText: 'Email'),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
@@ -63,15 +67,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(height: 20),
             if (_errorMessage != null)
               Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-            _isloading
+            _isLoading
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
-                    onPressed: _Register,
-                    child: const Text('Register'),
+                    onPressed: _login,
+                    child: const Text('Login'),
                   ),
             TextButton(
-              onPressed: _GotoLogin,
-              child: const Text("Already have an account?"),
+              onPressed: _goToRegister,
+              child: const Text("Don't have an account? Register"),
             ),
           ],
         ),

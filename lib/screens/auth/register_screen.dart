@@ -1,53 +1,51 @@
-//Login_Screen.dart
 import 'package:flutter/material.dart';
-import '../Core/Services/auth_service.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+import '../../services/auth_service.dart';
+
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  // final variables
+class _RegisterScreenState extends State<RegisterScreen> {
   final AuthService _authService = AuthService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   String? _errorMessage;
-  bool _isloading = false;
+  bool _isLoading = false;
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     setState(() {
-      _isloading = true;
+      _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      await _authService.signInWithEmail(email, password);
-      // Authgate will auto-redirect
-      Navigator.of(context).pushReplacementNamed('/Home');
+      await _authService.registerWithEmail(email, password);
+      // AuthGate will auto-redirect
     } catch (e) {
       setState(() {
-        _errorMessage = "Login failed: ${e.toString()}";
+        _errorMessage = 'Register failed: ${e.toString()}';
       });
     } finally {
-      setState(() => _isloading = false);
+      setState(() => _isLoading = false);
     }
   }
 
-  void _goToRegister() {
-    Navigator.pushNamed(context, '/Register');
+  void _goToLogin() {
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -55,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: const InputDecoration(labelText: 'Email'),
               keyboardType: TextInputType.emailAddress,
             ),
             const SizedBox(height: 12),
@@ -67,12 +65,15 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 20),
             if (_errorMessage != null)
               Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-            _isloading
+            _isLoading
                 ? const CircularProgressIndicator()
-                : ElevatedButton(onPressed: _login, child: const Text('Login')),
+                : ElevatedButton(
+                    onPressed: _register,
+                    child: const Text('Register'),
+                  ),
             TextButton(
-              onPressed: _goToRegister,
-              child: const Text("Don't have an account? Register"),
+              onPressed: _goToLogin,
+              child: const Text('Already have an account?'),
             ),
           ],
         ),

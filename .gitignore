@@ -48,3 +48,6 @@ app.*.map.json
 android/local.properties
 ios/Runner/MapsKeys.xcconfig
 lib/Core/Services/google_maps_config.dart
+
+# Claude Code
+.claude/

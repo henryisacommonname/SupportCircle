@@ -4,7 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../Core/Services/Google_Maps.dart';
+
+import '../../services/maps_service.dart';
 
 class SupportScreen extends StatelessWidget {
   const SupportScreen({super.key});
@@ -12,9 +13,7 @@ class SupportScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Find volunteer opportunities nears you!'),
-      ),
+      appBar: AppBar(title: const Text('Find volunteer opportunities near you!')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [LocalResourceCard(), SizedBox(height: 16)],
@@ -32,14 +31,14 @@ class LocalResourceCard extends StatefulWidget {
 
 class _LocalResourceCardState extends State<LocalResourceCard> {
   List<PlaceResult> _places = const [];
-  final GoogleMapsService _mapsService = GoogleMapsService();
+  final MapsService _mapsService = MapsService();
 
-  GoogleMapController? mapController;
-  Position? userPosition;
-  bool RequestLocation = false;
-  bool LocationDenied = false;
-  String? statusmessage;
-  bool LoadingPlaces = false;
+  GoogleMapController? _mapController;
+  Position? _userPosition;
+  bool _requestingLocation = false;
+  bool _locationDenied = false;
+  String? _statusMessage;
+  bool _loadingPlaces = false;
 
   DateTime? _placesCallStartedAt;
   Duration? _placesCallDuration;
@@ -50,65 +49,67 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
   @override
   void initState() {
     super.initState();
-    LocationRequester();
+    _requestLocation();
   }
 
-  Future<void> LocationRequester() async {
+  Future<void> _requestLocation() async {
     setState(() {
-      RequestLocation = true;
-      statusmessage = null;
+      _requestingLocation = true;
+      _statusMessage = null;
     });
 
     try {
-      final MapServiceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!MapServiceEnabled) {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
         if (!mounted) return;
         setState(() {
-          statusmessage = 'Turn on Location Services to Enable Map!';
-          LocationDenied = false;
+          _statusMessage = 'Turn on Location Services to Enable Map!';
+          _locationDenied = false;
         });
-        showSnack('Turn on Location Services to Enable Map!');
+        _showSnack('Turn on Location Services to Enable Map!');
         return;
       }
 
-      var Permission = await Geolocator.checkPermission();
-      if (Permission == LocationPermission.denied) {
-        Permission = await Geolocator.requestPermission();
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
       }
 
-      if (Permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.deniedForever) {
         if (!mounted) return;
         setState(() {
-          statusmessage =
-              'Location is Blocked, If you wish to use Location Services, Please turn on Location.';
-          LocationDenied = true;
+          _statusMessage =
+              'Location is Blocked. If you wish to use Location Services, please turn on Location.';
+          _locationDenied = true;
         });
         return;
       }
 
-      if (Permission == LocationPermission.denied) {
+      if (permission == LocationPermission.denied) {
         if (!mounted) return;
         setState(() {
-          statusmessage = 'Location permission denied';
-          LocationDenied = true;
+          _statusMessage = 'Location permission denied';
+          _locationDenied = true;
         });
         return;
       }
+
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.medium,
       );
       if (!mounted) return;
       setState(() {
-        userPosition = position;
-        LocationDenied = false;
-        statusmessage = 'Showing possible Community Service opportunities!';
+        _userPosition = position;
+        _locationDenied = false;
+        _statusMessage = 'Showing possible Community Service opportunities!';
       });
-      await LoadingEvents(position);
-      if (userPosition != null) {
-        mapController?.animateCamera(
+
+      await _loadEvents(position);
+      if (_userPosition != null) {
+        _mapController?.animateCamera(
           CameraUpdate.newCameraPosition(
             CameraPosition(
-              target: LatLng(userPosition!.latitude, userPosition!.longitude),
+              target: LatLng(_userPosition!.latitude, _userPosition!.longitude),
               zoom: 13.0,
             ),
           ),
@@ -116,38 +117,34 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        statusmessage = 'General Location Inaccessible.';
-      });
+      setState(() => _statusMessage = 'General Location Inaccessible.');
     } finally {
-      if (mounted) {
-        setState(() {
-          RequestLocation = false;
-        });
-      }
+      if (mounted) setState(() => _requestingLocation = false);
     }
   }
 
-  Future<void> LoadingEvents(Position userPosition) async {
+  Future<void> _loadEvents(Position userPosition) async {
     setState(() {
-      LoadingPlaces = true;
-      statusmessage = 'Finding events near you!';
+      _loadingPlaces = true;
+      _statusMessage = 'Finding events near you!';
       _placesCallInFlight = true;
       _placesCallStartedAt = DateTime.now();
       _placesCallDuration = null;
       _placesLastResultCount = null;
       _placesLastError = null;
     });
+
     try {
       final stopwatch = Stopwatch()..start();
       if (kDebugMode) {
         debugPrint(
-          '[SupportScreen] Calling Places API via GoogleMapsService.findCommunityEvents() '
+          '[SupportScreen] Calling Places API via MapsService.findCommunityEvents() '
           'lat=${userPosition.latitude}, lng=${userPosition.longitude}',
         );
       }
+
       final places = await _mapsService.findCommunityEvents(userPosition);
-      final Placeswithdistance = _sortPlacesByDistance(
+      final placesWithDistance = _sortPlacesByDistance(
         places
             .map(
               (place) => place.copyWith(
@@ -161,51 +158,47 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
             )
             .toList(),
       );
+
       if (!mounted) return;
       setState(() {
-        _places = Placeswithdistance;
+        _places = placesWithDistance;
         _placesLastResultCount = places.length;
         _placesCallDuration = stopwatch.elapsed;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        statusmessage = 'Could not find nearby opportunities';
+        _statusMessage = 'Could not find nearby opportunities';
         _placesLastError = e.toString();
       });
     } finally {
       if (mounted) {
         setState(() {
-          LoadingPlaces = false;
+          _loadingPlaces = false;
           _placesCallInFlight = false;
         });
       }
     }
   }
 
-  Set<Marker> BuildMarkers() {
+  Set<Marker> _buildMarkers() {
     final markers = _places
         .map(
           (place) => Marker(
             markerId: MarkerId(place.placeId),
             position: place.location,
-            infoWindow: InfoWindow(
-              title: place.name,
-              snippet: place.address ?? '',
-            ),
+            infoWindow: InfoWindow(title: place.name, snippet: place.address ?? ''),
           ),
         )
         .toSet();
 
-    final position = userPosition;
+    final position = _userPosition;
     if (position != null) {
       markers.add(
         Marker(
           markerId: const MarkerId('current-location'),
           position: LatLng(position.latitude, position.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
-          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
           infoWindow: const InfoWindow(title: 'Current Location'),
         ),
       );
@@ -213,22 +206,16 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     return markers;
   }
 
-  String distanceLabel(PlaceResult place) {
+  String _distanceLabel(PlaceResult place) {
     final distance = place.distance;
-    if (distance == null) {
-      return 'Distance unavailable';
-    }
+    if (distance == null) return 'Distance unavailable';
     final miles = distance / 1609.34;
     return '${miles.toStringAsFixed(2)} mi';
   }
 
   Color _statusColor(PlaceResult place, BuildContext context) {
-    if (place.isOpen == true) {
-      return Colors.green.shade600;
-    }
-    if (place.isOpen == false) {
-      return Colors.red.shade600;
-    }
+    if (place.isOpen == true) return Colors.green.shade600;
+    if (place.isOpen == false) return Colors.red.shade600;
     return Theme.of(context).colorScheme.outline;
   }
 
@@ -240,9 +227,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
 
   List<Widget> _buildChips(PlaceResult place) {
     const ignored = {'point_of_interest', 'establishment', 'premise', 'food'};
-    final tags = place.types.where((t) => !ignored.contains(t)).take(3).map((
-      type,
-    ) {
+    final tags = place.types.where((t) => !ignored.contains(t)).take(3).map((type) {
       final label = type.replaceAll('_', ' ');
       return Chip(
         label: Text(label),
@@ -254,10 +239,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     if (tags.isEmpty) {
       return [
         Chip(
-          label: Text(
-            'Community service',
-            style: TextStyle(color: Colors.blue.shade900),
-          ),
+          label: Text('Community service', style: TextStyle(color: Colors.blue.shade900)),
           visualDensity: VisualDensity.compact,
           padding: const EdgeInsets.symmetric(horizontal: 6),
         ),
@@ -266,7 +248,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     return tags;
   }
 
-  Widget buildplacecard(BuildContext context, PlaceResult place) {
+  Widget _buildPlaceCard(BuildContext context, PlaceResult place) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Padding(
@@ -281,47 +263,36 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        place.name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      Text(place.name, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
                       Row(
                         children: [
                           Text(
-                            distanceLabel(place),
-                            style: Theme.of(context).textTheme.bodyMedium
+                            _distanceLabel(place),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(width: 8),
-                          Icon(
-                            Icons.circle,
-                            size: 8,
-                            color: _statusColor(place, context),
-                          ),
+                          Icon(Icons.circle, size: 8, color: _statusColor(place, context)),
                           const SizedBox(width: 4),
                           Text(
                             _statusLabel(place),
-                            style: Theme.of(context).textTheme.bodySmall
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
                                 ?.copyWith(color: _statusColor(place, context)),
                           ),
                           if (place.rating != null) ...[
                             const SizedBox(width: 12),
-                            const Icon(
-                              Icons.star_rounded,
-                              color: Colors.amber,
-                              size: 18,
-                            ),
+                            const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                             Text(place.rating!.toStringAsFixed(1)),
                           ],
                         ],
                       ),
                       const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: -8,
-                        children: _buildChips(place),
-                      ),
+                      Wrap(spacing: 6, runSpacing: -8, children: _buildChips(place)),
                       const SizedBox(height: 8),
                       Text(
                         place.address ?? 'Address unavailable',
@@ -334,9 +305,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                   tooltip: 'Center on map',
                   icon: const Icon(Icons.map_outlined),
                   onPressed: () {
-                    mapController?.animateCamera(
-                      CameraUpdate.newLatLngZoom(place.location, 14),
-                    );
+                    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(place.location, 14));
                   },
                 ),
               ],
@@ -346,9 +315,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
               width: double.infinity,
               child: FilledButton(
                 onPressed: () {
-                  mapController?.animateCamera(
-                    CameraUpdate.newLatLngZoom(place.location, 15),
-                  );
+                  _mapController?.animateCamera(CameraUpdate.newLatLngZoom(place.location, 15));
                 },
                 child: const Text('Get Directions'),
               ),
@@ -360,11 +327,13 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
   }
 
   List<PlaceResult> _sortPlacesByDistance(List<PlaceResult> places) {
-    return List<PlaceResult>.from(places)..sort(
-      (a, b) => (a.distance ?? double.infinity).compareTo(
-        b.distance ?? double.infinity,
-      ),
-    );
+    return List<PlaceResult>.from(places)
+      ..sort((a, b) =>
+          (a.distance ?? double.infinity).compareTo(b.distance ?? double.infinity));
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -372,11 +341,11 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     const nycCenter = LatLng(40.7128, -74.0060);
     final mapHeight = max(360.0, MediaQuery.sizeOf(context).height * 0.55);
 
-    final buttonLabel = LocationDenied
+    final buttonLabel = _locationDenied
         ? 'Open Settings'
-        : userPosition == null
-        ? 'Enable Location'
-        : 'Refresh';
+        : _userPosition == null
+            ? 'Enable Location'
+            : 'Refresh';
 
     return Card(
       child: Padding(
@@ -397,20 +366,17 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                         myLocationButtonEnabled: true,
                         myLocationEnabled: true,
                         initialCameraPosition: CameraPosition(
-                          target: userPosition != null
-                              ? LatLng(
-                                  userPosition!.latitude,
-                                  userPosition!.longitude,
-                                )
+                          target: _userPosition != null
+                              ? LatLng(_userPosition!.latitude, _userPosition!.longitude)
                               : nycCenter,
-                          zoom: userPosition != null ? 13 : 5,
+                          zoom: _userPosition != null ? 13 : 5,
                         ),
-                        markers: BuildMarkers(),
+                        markers: _buildMarkers(),
                         onMapCreated: (controller) {
-                          mapController = controller;
-                          final position = userPosition;
+                          _mapController = controller;
+                          final position = _userPosition;
                           if (position != null) {
-                            mapController?.moveCamera(
+                            _mapController?.moveCamera(
                               CameraUpdate.newLatLng(
                                 LatLng(position.latitude, position.longitude),
                               ),
@@ -424,36 +390,29 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                       left: 12,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withAlpha(230),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 6,
-                              offset: Offset(0, 2),
-                            ),
+                            BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
                           ],
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           child: Text(
                             '${_places.length} locations nearby',
-                            style: Theme.of(context).textTheme.labelLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
                     ),
-                    if (RequestLocation)
+                    if (_requestingLocation)
                       Positioned.fill(
                         child: Container(
                           color: Colors.black12,
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          child: const Center(child: CircularProgressIndicator()),
                         ),
                       ),
                   ],
@@ -461,7 +420,7 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
               ),
             ),
             const SizedBox(height: 12),
-            if (statusmessage != null) Text(statusmessage!),
+            if (_statusMessage != null) Text(_statusMessage!),
             if (kDebugMode) ...[
               const SizedBox(height: 8),
               DecoratedBox(
@@ -486,14 +445,9 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                         Text(
                           'duration: ${_placesCallDuration != null ? '${_placesCallDuration!.inMilliseconds}ms' : '-'}',
                         ),
-                        Text(
-                          'resultCount: ${_placesLastResultCount != null ? _placesLastResultCount.toString() : '-'}',
-                        ),
-                        Text(
-                          'apiKeyPresent: ${_mapsService.apiKey.isNotEmpty}',
-                        ),
-                        if (_placesLastError != null)
-                          Text('error: $_placesLastError'),
+                        Text('resultCount: ${_placesLastResultCount?.toString() ?? '-'}'),
+                        Text('apiKeyPresent: ${_mapsService.apiKey.isNotEmpty}'),
+                        if (_placesLastError != null) Text('error: $_placesLastError'),
                       ],
                     ),
                   ),
@@ -504,23 +458,23 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
             Row(
               children: [
                 FilledButton.icon(
-                  onPressed: RequestLocation
+                  onPressed: _requestingLocation
                       ? null
                       : () async {
-                          if (LocationDenied) {
+                          if (_locationDenied) {
                             await Geolocator.openAppSettings();
                             return;
                           }
-                          await LocationRequester();
+                          await _requestLocation();
                         },
                   icon: const Icon(Icons.location_searching),
                   label: Text(buttonLabel),
                 ),
                 const SizedBox(width: 12),
-                if (userPosition != null)
+                if (_userPosition != null)
                   Text(
-                    'Lat: ${userPosition!.latitude.toStringAsFixed(3)}, '
-                    'Lng: ${userPosition!.longitude.toStringAsFixed(3)}',
+                    'Lat: ${_userPosition!.latitude.toStringAsFixed(3)}, '
+                    'Lng: ${_userPosition!.longitude.toStringAsFixed(3)}',
                   ),
               ],
             ),
@@ -531,43 +485,27 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Nearby locations',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                    Text('Nearby locations', style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 2),
-                    Text(
-                      '${_places.length} found',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    Text('${_places.length} found', style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),
                 TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _places = _sortPlacesByDistance(_places);
-                    });
-                  },
+                  onPressed: () => setState(() => _places = _sortPlacesByDistance(_places)),
                   child: const Text('Sort by distance'),
                 ),
               ],
             ),
-            if (LoadingPlaces) const LinearProgressIndicator(minHeight: 4),
-            if (!LoadingPlaces && _places.isEmpty)
+            if (_loadingPlaces) const LinearProgressIndicator(minHeight: 4),
+            if (!_loadingPlaces && _places.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Text('No nearby locations found yet.'),
               ),
-            ..._places.map((place) => buildplacecard(context, place)),
+            ..._places.map((place) => _buildPlaceCard(context, place)),
           ],
         ),
       ),
     );
-  }
-
-  void showSnack(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

@@ -1,5 +1,3 @@
-// auth_service.dart
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -26,27 +24,29 @@ class AuthService {
       email: email,
       password: password,
     );
-    await ensureUserDoc(cred.user!); // ensure profile doc right after register
+    await ensureUserDoc(cred.user!);
     return cred;
   }
 
   Future<void> signOut() async => _auth.signOut();
 
-  Future<void> UpdateUserProfile({
-    required String DisplayName,
-    String? PhotoURL,
+  Future<void> updateUserProfile({
+    required String displayName,
+    String? photoURL,
   }) async {
-    final User = _auth.currentUser;
-    if (User == null) throw Exception('User Not Sign In');
-    await User.updateDisplayName(DisplayName);
-    if (PhotoURL != null) {
-      await User.updatePhotoURL(PhotoURL);
+    final user = _auth.currentUser;
+    if (user == null) throw Exception('User not signed in');
+
+    await user.updateDisplayName(displayName);
+    if (photoURL != null) {
+      await user.updatePhotoURL(photoURL);
     }
-    await User.reload();
-    final doc = FirebaseFirestore.instance.collection('users').doc(User.uid);
+    await user.reload();
+
+    final doc = FirebaseFirestore.instance.collection('users').doc(user.uid);
     await doc.set({
-      'DisplayName': DisplayName,
-      'pfpURL': PhotoURL,
+      'DisplayName': displayName,
+      'pfpURL': photoURL,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -63,8 +63,7 @@ class AuthService {
             ? user.displayName
             : 'Volunteer',
         'pfpURL': user.photoURL ?? '',
-        'TimeTracker':
-            0, // int to start; make it double if you prefer fractional hours
+        'TimeTracker': 0,
         'role': 'High School Volunteer',
         'level': 1,
         'childrenHelped': 0,

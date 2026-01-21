@@ -1,16 +1,18 @@
-import 'package:draft_1/Screens/Module_Player.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../Core/Training_Repository.dart';
+
+import '../../models/training_module.dart';
+import '../../services/training_repository.dart';
+import 'module_player.dart';
 
 class TrainingScreen extends StatefulWidget {
   const TrainingScreen({super.key});
 
   @override
-  State<TrainingScreen> createState() => TrainingScreenState();
+  State<TrainingScreen> createState() => _TrainingScreenState();
 }
 
-class TrainingScreenState extends State<TrainingScreen> {
+class _TrainingScreenState extends State<TrainingScreen> {
   final _repo = TrainingRepository();
 
   ({int completed, int total, double ratio}) _progressOf(
@@ -19,9 +21,8 @@ class TrainingScreenState extends State<TrainingScreen> {
     final total = modules.length;
     if (total == 0) return (completed: 0, total: 0, ratio: 0);
 
-    final completed = modules
-        .where((m) => m.status == ModuleStatus.completed)
-        .length;
+    final completed =
+        modules.where((m) => m.status == ModuleStatus.completed).length;
     final ratio = completed / total;
     return (completed: completed, total: total, ratio: ratio);
   }
@@ -30,52 +31,54 @@ class TrainingScreenState extends State<TrainingScreen> {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return const Scaffold(body: Center(child: Text('Please sign in,')));
+      return const Scaffold(body: Center(child: Text('Please sign in')));
     }
+
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Training")),
+      appBar: AppBar(title: const Text('Training')),
       body: StreamBuilder(
-        stream: _repo.ModuleswithStatus(uid),
+        stream: _repo.modulesWithStatus(uid),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text("ERROR -${snap.error}"));
+            return Center(child: Text('ERROR - ${snap.error}'));
           }
+
           final modules = snap.data ?? const <TrainingModule>[];
           final progress = _progressOf(modules);
           final pctText =
               '${progress.completed} of ${progress.total} modules completed';
+
           return ListView(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             children: [
               Container(
-                padding: EdgeInsets.all(16),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
+                  color: scheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       blurRadius: 12,
-                      color: Colors.deepPurple.withOpacity(0.05),
+                      color: Colors.deepPurple.withAlpha(13),
                     ),
                   ],
                 ),
                 child: Column(
                   children: [
-                    Text('Your Progress'),
+                    const Text('Your Progress'),
                     const SizedBox(height: 10),
                     ClipRRect(
                       child: LinearProgressIndicator(
                         value: progress.ratio,
                         minHeight: 10,
                         backgroundColor: scheme.surfaceContainerHighest,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          scheme.primary,
-                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(scheme.primary),
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
@@ -85,27 +88,24 @@ class TrainingScreenState extends State<TrainingScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              for (final M in modules)
+              for (final module in modules)
                 TrainingModuleCard(
-                  module: M,
+                  module: module,
                   onTap: () async {
                     await _repo.setStatus(
                       uid: uid,
-                      moduleid: M.id,
+                      moduleId: module.id,
                       status: ModuleStatus.inProgress,
                     );
+                    if (!mounted) return;
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ModulePlayerScreen(module: M),
+                        builder: (_) => ModulePlayerScreen(module: module),
                       ),
                     );
                   },
-                  onReview: M.status == ModuleStatus.completed
-                      ? () {
-                          //TODO DO SOMETHING HERE, like an animation
-                        }
-                      : null,
+                  onReview: module.status == ModuleStatus.completed ? () {} : null,
                 ),
             ],
           );
@@ -127,7 +127,7 @@ class _ModuleImagePlaceholder extends StatelessWidget {
         child: Icon(
           Icons.image_not_supported_outlined,
           size: 42,
-          color: scheme.onSurfaceVariant.withOpacity(0.7),
+          color: scheme.onSurfaceVariant.withAlpha(178),
         ),
       ),
     );
@@ -148,26 +148,24 @@ class TrainingModuleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    Color BadgeColor;
+    Color badgeColor;
     String badgeText;
 
     switch (module.status) {
       case ModuleStatus.completed:
-        badgeText = "completed!";
-        BadgeColor = const Color(0xFF2BB673);
+        badgeText = 'completed!';
+        badgeColor = const Color(0xFF2BB673);
         break;
       case ModuleStatus.inProgress:
-        badgeText = "inProgress";
-        BadgeColor = const Color(0xFFF6A21A);
+        badgeText = 'inProgress';
+        badgeColor = const Color(0xFFF6A21A);
         break;
       default:
-        badgeText = "Not Started";
-        BadgeColor = const Color(0xFFE53935);
+        badgeText = 'Not Started';
+        badgeColor = const Color(0xFFE53935);
     }
-    final hasHeaderImage = module.hasimage;
-    Widget StatusBadge() => Container(child: Text(badgeText));
+
+    final hasHeaderImage = module.hasImage;
     final headerImage = hasHeaderImage
         ? Image.network(
             module.imageURL!,
@@ -175,6 +173,7 @@ class TrainingModuleCard extends StatelessWidget {
             errorBuilder: (_, __, ___) => const _ModuleImagePlaceholder(),
           )
         : const _ModuleImagePlaceholder();
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -190,12 +189,9 @@ class TrainingModuleCard extends StatelessWidget {
                   top: 10,
                   right: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 10,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                     decoration: BoxDecoration(
-                      color: BadgeColor,
+                      color: badgeColor,
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(badgeText),
@@ -204,33 +200,28 @@ class TrainingModuleCard extends StatelessWidget {
               ],
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(14, 12, 14, 6),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
               child: Text(module.title),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Text(module.subtitle),
             ),
             const SizedBox(height: 10),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 14,
-                right: 8,
-                bottom: 12,
-                top: 0,
-              ),
+              padding: const EdgeInsets.only(left: 14, right: 8, bottom: 12),
               child: Row(
                 children: [
                   const Icon(Icons.access_alarms_outlined),
                   const SizedBox(width: 5),
-                  Text("${module.minutes} Min"),
-                  Spacer(),
+                  Text('${module.minutes} Min'),
+                  const Spacer(),
                   if (onReview != null)
-                    TextButton(onPressed: onReview, child: const Text("Review"))
+                    TextButton(onPressed: onReview, child: const Text('Review'))
                   else if (module.status == ModuleStatus.inProgress)
-                    TextButton(onPressed: onTap, child: Text("Resume"))
+                    TextButton(onPressed: onTap, child: const Text('Resume'))
                   else
-                    TextButton(onPressed: onTap, child: Text("Start")),
+                    TextButton(onPressed: onTap, child: const Text('Start')),
                 ],
               ),
             ),

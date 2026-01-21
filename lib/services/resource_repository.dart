@@ -1,54 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
-class AppResource {
-  final String id;
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  const AppResource({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  factory AppResource.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data() ?? {};
-    return AppResource(
-      id: doc.id,
-      title: (data['title'] as String?)?.trim().isNotEmpty == true
-          ? (data['title'] as String)
-          : 'Untitled resource',
-      subtitle: data['subtitle'] as String? ?? '',
-      icon: _iconFromName(data['icon'] as String?),
-    );
-  }
-
-  static IconData _iconFromName(String? raw) {
-    switch ((raw ?? '').toLowerCase()) {
-      case 'book':
-      case 'menu_book':
-      case 'menu_book_outlined':
-        return Icons.menu_book_outlined;
-      case 'school':
-      case 'school_outlined':
-        return Icons.school_outlined;
-      case 'call':
-      case 'phone':
-        return Icons.call;
-      default:
-        return Icons.insert_drive_file_outlined;
-    }
-  }
-}
+import '../models/app_resource.dart';
 
 class ResourceRepository {
   final FirebaseFirestore _firestore;
+
   ResourceRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
   Stream<List<AppResource>> featuredResources({int limit = 3}) =>
       _queryResources(limit: limit);
@@ -60,11 +19,13 @@ class ResourceRepository {
     if (limit != null) {
       query = query.limit(limit);
     }
+
     if (kDebugMode) {
       debugPrint(
         '[Resources] subscribe collection=Resources limit=${limit ?? 'none'}',
       );
     }
+
     return query
         .snapshots(includeMetadataChanges: kDebugMode)
         .map((snap) {

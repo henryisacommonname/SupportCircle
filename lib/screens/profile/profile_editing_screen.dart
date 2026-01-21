@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Core/Services/auth_service.dart';
+
+import '../../services/auth_service.dart';
 
 class ProfileEditingScreen extends StatefulWidget {
   const ProfileEditingScreen({super.key});
+
   @override
-  State<ProfileEditingScreen> createState() => ProfileEditingScreenState();
+  State<ProfileEditingScreen> createState() => _ProfileEditingScreenState();
 }
 
-class ProfileEditingScreenState extends State<ProfileEditingScreen> {
+class _ProfileEditingScreenState extends State<ProfileEditingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _displayNameCtrl = TextEditingController();
   final _pfpCtrl = TextEditingController();
   bool _saving = false;
-  bool _prefilled = false; // ensure we only prefill once
+  bool _prefilled = false;
 
   @override
   void dispose() {
@@ -27,17 +29,14 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      // Match your student's casing and parameter names exactly
-      await AuthService().UpdateUserProfile(
-        DisplayName: _displayNameCtrl.text.trim(),
-        PhotoURL: _pfpCtrl.text.trim().isEmpty ? null : _pfpCtrl.text.trim(),
+      await AuthService().updateUserProfile(
+        displayName: _displayNameCtrl.text.trim(),
+        photoURL: _pfpCtrl.text.trim().isEmpty ? null : _pfpCtrl.text.trim(),
       );
-      if (mounted) Navigator.of(context).pop(); // back to Profile
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -50,9 +49,7 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
       return const Scaffold(body: Center(child: Text('Not signed in')));
     }
 
-    final userRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid);
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
     return Scaffold(
       appBar: AppBar(
@@ -82,7 +79,6 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
 
           final data = snap.data!.data() ?? <String, dynamic>{};
 
-          // Prefill controllers once from Firestore
           if (!_prefilled) {
             _displayNameCtrl.text =
                 ((data['DisplayName'] as String?) ?? 'Volunteer').trim();
@@ -105,12 +101,8 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                       ),
                       textInputAction: TextInputAction.next,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Invalid username';
-                        }
-                        if (v.trim().length > 20) {
-                          return 'Username too long';
-                        }
+                        if (v == null || v.trim().isEmpty) return 'Invalid username';
+                        if (v.trim().length > 20) return 'Username too long';
                         return null;
                       },
                     ),
@@ -125,14 +117,11 @@ class ProfileEditingScreenState extends State<ProfileEditingScreen> {
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) return null;
                         final uri = Uri.tryParse(v.trim());
-                        final ok =
-                            uri != null && uri.hasScheme && uri.hasAuthority;
+                        final ok = uri != null && uri.hasScheme && uri.hasAuthority;
                         return ok ? null : 'Enter a valid URL';
                       },
                     ),
                     const SizedBox(height: 24),
-
-                    // Long button under the form
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

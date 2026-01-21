@@ -1,29 +1,32 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
-class ChatApiExpection implements Exception {
-  const ChatApiExpection(
-    this.message, {
-    this.statusCode,
-    this.isWakingup = false,
-  });
+class ChatApiException implements Exception {
   final String message;
   final int? statusCode;
-  final bool isWakingup;
+  final bool isWakingUp;
+
+  const ChatApiException(
+    this.message, {
+    this.statusCode,
+    this.isWakingUp = false,
+  });
+
   @override
-  String toString() => 'ChatApiExpection: $message';
+  String toString() => 'ChatApiException: $message';
 }
 
 class ChatApiService {
-  ChatApiService(
-    String baseUrl, {
-    Duration requesttimeout = const Duration(seconds: 10),
-  }) : _baseUri = _normalizeBase(baseUrl),
-       _timeout = requesttimeout;
-
   final Uri _baseUri;
   final Duration _timeout;
+
+  ChatApiService(
+    String baseUrl, {
+    Duration requestTimeout = const Duration(seconds: 10),
+  })  : _baseUri = _normalizeBase(baseUrl),
+        _timeout = requestTimeout;
 
   static Uri _normalizeBase(String url) {
     final trimmed = url.trim();
@@ -50,16 +53,16 @@ class ChatApiService {
           )
           .timeout(_timeout);
     } on TimeoutException catch (_) {
-      throw ChatApiExpection(
+      throw ChatApiException(
         'Please wait for our assistant to wake up.',
-        isWakingup: true,
+        isWakingUp: true,
       );
     } on Exception catch (e) {
-      throw ChatApiExpection('Network error: $e');
+      throw ChatApiException('Network error: $e');
     }
 
     if (response.statusCode != 200) {
-      throw Exception('Serve error: ${response.statusCode} ${response.body}');
+      throw Exception('Server error: ${response.statusCode} ${response.body}');
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
   }

@@ -1,18 +1,23 @@
-
-import 'package:draft_1/Core/Services/Resources_Repository.dart';
 import 'package:flutter/material.dart';
+
+import '../../models/app_resource.dart';
+import '../../services/resource_repository.dart';
+import 'resource_player.dart';
 
 class ResourcesScreen extends StatelessWidget {
   const ResourcesScreen({super.key});
-  static const String routeName = "/Resources";
+
+  static const String routeName = '/resources';
+
   @override
   Widget build(BuildContext context) {
-    final repo = ResourcesRepository();
+    final repo = ResourceRepository();
     final theme = Theme.of(context);
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
-          physics: BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(
               floating: true,
@@ -24,51 +29,44 @@ class ResourcesScreen extends StatelessWidget {
             SliverToBoxAdapter(
               child: Center(
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 640),
+                  constraints: const BoxConstraints(maxWidth: 640),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Resources",
+                          'Resources',
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w300,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          "Check out our documents to find helpful information for your outing!",
+                        const Text(
+                          'Check out our documents to find helpful information for your outing!',
                         ),
                         const SizedBox(height: 16),
                         StreamBuilder(
-                          stream: repo.searchResources(),
+                          stream: repo.allResources(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return _ResourceSkeletonList();
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const _ResourceSkeletonList();
                             }
                             if (snapshot.hasError) {
-                              return Text("Unable to Access our Resources");
+                              return const Text('Unable to Access our Resources');
                             }
 
-                            final Resources = snapshot.data ?? [];
+                            final resources = snapshot.data ?? [];
                             return Column(
                               children: [
-                                for (final res in Resources) ...[
+                                for (final res in resources) ...[
                                   _ResourceCard(
                                     resource: res,
                                     onTap: () {
-                                      ScaffoldMessenger.of(
+                                      Navigator.push(
                                         context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            "Resource Details coming soon...",
-                                          ),
+                                        MaterialPageRoute(
+                                          builder: (_) => ResourcePlayerScreen(resource: res),
                                         ),
                                       );
                                     },
@@ -109,7 +107,7 @@ class _ResourceCardState extends State<_ResourceCard> {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final baseColor = scheme.surface;
-    final hoverColor = scheme.primary.withOpacity(0.05);
+    final hoverColor = scheme.primary.withAlpha(13);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
@@ -121,13 +119,13 @@ class _ResourceCardState extends State<_ResourceCard> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withAlpha(10),
               blurRadius: 14,
               spreadRadius: 1,
               offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: scheme.outlineVariant.withOpacity(0.5)),
+          border: Border.all(color: scheme.outlineVariant.withAlpha(128)),
         ),
         child: Material(
           color: Colors.transparent,
@@ -139,10 +137,7 @@ class _ResourceCardState extends State<_ResourceCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ResourceIcon(
-                    icon: widget.resource.icon,
-                    color: scheme.primary,
-                  ),
+                  _ResourceIcon(icon: widget.resource.icon, color: scheme.primary),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -189,39 +184,10 @@ class _ResourceIcon extends StatelessWidget {
       height: 44,
       width: 44,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withAlpha(31),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(icon, color: color),
-    );
-  }
-}
-
-class _ResourceMessage extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _ResourceMessage({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: scheme.onSurfaceVariant),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -253,7 +219,7 @@ class _ResourceSkeletonCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(color: scheme.outlineVariant.withAlpha(128)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
@@ -271,11 +237,11 @@ class _ResourceSkeletonCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _skeletonBar(width: 180),
+                _skeletonBar(context, width: 180),
                 const SizedBox(height: 8),
-                _skeletonBar(width: 240),
+                _skeletonBar(context, width: 240),
                 const SizedBox(height: 4),
-                _skeletonBar(width: 180),
+                _skeletonBar(context, width: 180),
               ],
             ),
           ),
@@ -284,15 +250,13 @@ class _ResourceSkeletonCard extends StatelessWidget {
     );
   }
 
-  Widget _skeletonBar({required double width}) {
-    return LayoutBuilder(
-      builder: (context, constraints) => Container(
-        height: 12,
-        width: width,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
+  Widget _skeletonBar(BuildContext context, {required double width}) {
+    return Container(
+      height: 12,
+      width: width,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }

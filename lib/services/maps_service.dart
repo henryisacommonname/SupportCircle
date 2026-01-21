@@ -5,22 +5,22 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
-import 'google_maps_config.dart' show googleMapsApiKey;
+const String _googleMapsApiKey = 'AIzaSyCjgCG0bKWiNFAcPX8PquLnZ16l7UEl77g';
 
-class GoogleMapsService {
+class MapsService {
   final String apiKey;
 
-  GoogleMapsService({String? apiKeyOverride})
-    : apiKey =
-          apiKeyOverride ??
-          googleMapsApiKey.ifEmpty(
-            const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-          );
+  MapsService({String? apiKeyOverride})
+      : apiKey = apiKeyOverride ??
+            _googleMapsApiKey._ifEmpty(
+              const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+            );
 
   Future<List<PlaceResult>> findCommunityEvents(Position userPosition) async {
     if (apiKey.isEmpty) {
       throw Exception('Google Maps API key missing');
     }
+
     final uri = Uri.https(
       'maps.googleapis.com',
       '/maps/api/place/nearbysearch/json',
@@ -37,7 +37,7 @@ class GoogleMapsService {
       final sanitizedQuery = Map<String, String>.from(uri.queryParameters)
         ..remove('key');
       final sanitizedUri = uri.replace(queryParameters: sanitizedQuery);
-      debugPrint('[GoogleMapsService] Places nearbysearch GET $sanitizedUri');
+      debugPrint('[MapsService] Places nearbysearch GET $sanitizedUri');
     }
 
     final response = await http.get(uri);
@@ -54,8 +54,9 @@ class GoogleMapsService {
     if (data['status'] != 'OK' && data['status'] != 'ZERO_RESULTS') {
       throw Exception('Places API error: ${data['status']}');
     }
+
     if (kDebugMode) {
-      debugPrint('[GoogleMapsService] Places status=${data['status']}');
+      debugPrint('[MapsService] Places status=${data['status']}');
     }
 
     final results = data['results'] as List<dynamic>? ?? <dynamic>[];
@@ -63,8 +64,8 @@ class GoogleMapsService {
   }
 }
 
-extension StringFallbackExtension on String {
-  String ifEmpty(String fallback) => isEmpty ? fallback : this;
+extension on String {
+  String _ifEmpty(String fallback) => isEmpty ? fallback : this;
 }
 
 class PlaceResult {
@@ -92,14 +93,14 @@ class PlaceResult {
     final geometry = json['geometry'] as Map<String, dynamic>? ?? {};
     final location = geometry['location'] as Map<String, dynamic>? ?? {};
     final openingHours = json['opening_hours'] as Map<String, dynamic>?;
+
     return PlaceResult(
       placeId: json['place_id'] as String? ?? json['id'] as String? ?? '',
       name: json['name'] as String? ?? 'Community Service Event',
       address: json['vicinity'] as String?,
       rating: (json['rating'] as num?)?.toDouble(),
       isOpen: openingHours != null ? openingHours['open_now'] as bool? : null,
-      types:
-          (json['types'] as List<dynamic>?)
+      types: (json['types'] as List<dynamic>?)
               ?.map((type) => type.toString())
               .toList() ??
           const [],

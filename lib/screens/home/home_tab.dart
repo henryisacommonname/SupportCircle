@@ -1,27 +1,29 @@
-//Home_Tab.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../Core/Services/Resources_Repository.dart';
-import 'Resources_Screen.dart';
+
+import '../../models/app_resource.dart';
+import '../../services/resource_repository.dart';
+import '../resources/resources_screen.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
-  static final ResourcesRepository resources_repository = ResourcesRepository();
+  static final ResourceRepository _resourceRepository = ResourceRepository();
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          WelcomeCard(),
+          const WelcomeCard(),
           const SizedBox(height: 12),
-          QuickActionsRow(),
+          const QuickActionsRow(),
           const SizedBox(height: 12),
-          const SectionHeader(Title: 'Resources'),
+          const SectionHeader(title: 'Resources'),
           const SizedBox(height: 8),
           StreamBuilder<List<AppResource>>(
-            stream: resources_repository.Featuredresources(max: 3),
+            stream: _resourceRepository.featuredResources(limit: 3),
             builder: (context, snapshot) {
               if (kDebugMode) {
                 debugPrint(
@@ -53,14 +55,12 @@ class HomeTab extends StatelessWidget {
                 );
               }
               return Column(
-                children: resources
-                    .map((r) => ResourceCard(Resource: r))
-                    .toList(),
+                children: resources.map((r) => ResourceCard(resource: r)).toList(),
               );
             },
           ),
           const SizedBox(height: 12),
-          const SectionHeader(Title: 'Shortcuts'),
+          const SectionHeader(title: 'Shortcuts'),
           const SizedBox(height: 8),
           ShortcutCard(
             icon: Icons.school_outlined,
@@ -81,9 +81,9 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-/*--- Components ---*/
 class WelcomeCard extends StatelessWidget {
   const WelcomeCard({super.key});
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -113,28 +113,28 @@ class WelcomeCard extends StatelessWidget {
 
 class QuickActionsRow extends StatelessWidget {
   const QuickActionsRow({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
+    return const Row(
+      children: [
         Expanded(
           child: QuickActionsCard(
             title: 'AI Assistant',
             subtitle: 'get real-time help',
-            QAIcon: Icons.smart_toy_outlined,
-            QAroute: '/assistant',
+            icon: Icons.smart_toy_outlined,
+            route: '/assistant',
             color: Colors.white,
           ),
         ),
-
         SizedBox(width: 12),
         Expanded(
           child: QuickActionsCard(
             title: 'Emergency',
             subtitle: 'Quick help access',
-            QAIcon: Icons.call,
-            QAroute: '/emergency',
-            emph: true,
+            icon: Icons.call,
+            route: '/emergency',
+            emphasized: true,
           ),
         ),
       ],
@@ -146,37 +146,37 @@ class QuickActionsCard extends StatelessWidget {
   final Color? color;
   final String title;
   final String subtitle;
-  final IconData QAIcon;
-  final String QAroute;
-  final bool emph;
+  final IconData icon;
+  final String route;
+  final bool emphasized;
+
   const QuickActionsCard({
     super.key,
     required this.title,
     required this.subtitle,
-    required this.QAIcon,
-    required this.QAroute,
-    this.emph = false,
+    required this.icon,
+    required this.route,
+    this.emphasized = false,
     this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Scheme = Theme.of(context).colorScheme;
-    final bg = color;
-    final fg = emph ? Scheme.onErrorContainer : Scheme.onSurface;
+    final scheme = Theme.of(context).colorScheme;
+    final fg = emphasized ? scheme.onErrorContainer : scheme.onSurface;
 
     return Card(
-      color: bg,
+      color: color,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context).pushNamed(QAroute),
+        onTap: () => Navigator.of(context).pushNamed(route),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(QAIcon, size: 28),
+              Icon(icon, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -189,7 +189,7 @@ class QuickActionsCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(color: fg.withOpacity(0.7)),
+                      style: TextStyle(color: fg.withAlpha(178)),
                     ),
                   ],
                 ),
@@ -203,16 +203,17 @@ class QuickActionsCard extends StatelessWidget {
 }
 
 class SectionHeader extends StatelessWidget {
-  final String Title;
-  const SectionHeader({super.key, required this.Title});
+  final String title;
+  const SectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      Title,
-      style: Theme.of(
-        context,
-      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+      title,
+      style: Theme.of(context)
+          .textTheme
+          .titleMedium
+          ?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }
@@ -222,6 +223,7 @@ class ShortcutCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+
   const ShortcutCard({
     super.key,
     required this.icon,
@@ -234,7 +236,7 @@ class ShortcutCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
-      color: scheme.surfaceContainerHighest.withOpacity(0.35),
+      color: scheme.surfaceContainerHighest.withAlpha(89),
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
@@ -258,7 +260,7 @@ class ShortcutCard extends StatelessWidget {
                     Text(
                       subtitle,
                       style: TextStyle(
-                        color: scheme.onSurfaceVariant.withOpacity(0.8),
+                        color: scheme.onSurfaceVariant.withAlpha(204),
                       ),
                     ),
                   ],
@@ -275,6 +277,7 @@ class ShortcutCard extends StatelessWidget {
 
 class ResourcePlaceholder extends StatelessWidget {
   const ResourcePlaceholder({super.key});
+
   @override
   Widget build(BuildContext context) {
     return const Card(
@@ -285,33 +288,32 @@ class ResourcePlaceholder extends StatelessWidget {
           width: 24,
           child: CircularProgressIndicator(strokeWidth: 2.5),
         ),
-        title: Text("Loading Resources"),
+        title: Text('Loading Resources'),
       ),
     );
   }
 }
 
 class ResourceCard extends StatelessWidget {
-  final AppResource Resource;
-  const ResourceCard({super.key, required this.Resource});
+  final AppResource resource;
+  const ResourceCard({super.key, required this.resource});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
     return Card(
       elevation: 0,
       surfaceTintColor: Colors.transparent,
       child: ListTile(
-        leading: Icon(Resource.icon),
-        onTap: () => Navigator.of(
-          context,
-        ).pushNamed(ResourcesScreen.routeName, arguments: Resource.id),
+        leading: Icon(resource.icon),
+        onTap: () => Navigator.of(context).pushNamed(
+          ResourcesScreen.routeName,
+          arguments: resource.id,
+        ),
         title: Text(
-          Resource.title,
+          resource.title,
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
-        subtitle: Text(Resource.subtitle),
+        subtitle: Text(resource.subtitle),
         trailing: const Icon(Icons.chevron_right),
       ),
     );
