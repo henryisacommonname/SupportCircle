@@ -6,6 +6,7 @@ import 'config/theme.dart';
 import 'screens/auth/auth_gate.dart';
 import 'services/chat_api_service.dart';
 import 'widgets/collapsible_chat.dart';
+import 'widgets/onboarding_carousel.dart';
 
 class SupportCircleApp extends StatelessWidget {
   SupportCircleApp({super.key});
@@ -33,12 +34,21 @@ class SupportCircleApp extends StatelessWidget {
             OverlayEntry(
               builder: (_) => StreamBuilder<User?>(
                 stream: FirebaseAuth.instance.authStateChanges(),
-                builder: (context, snapshot) {
+                builder: (context, authSnapshot) {
                   // Only show chat FAB when user is authenticated
-                  if (snapshot.data == null) {
+                  if (authSnapshot.data == null) {
                     return const SizedBox.shrink();
                   }
-                  return CollapsibleChat(api: _chatApi);
+                  // Hide during onboarding
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: isOnboardingVisible,
+                    builder: (context, isOnboarding, child) {
+                      if (isOnboarding) {
+                        return const SizedBox.shrink();
+                      }
+                      return CollapsibleChat(api: _chatApi);
+                    },
+                  );
                 },
               ),
             ),

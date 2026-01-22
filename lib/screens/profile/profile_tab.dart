@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../services/auth_service.dart';
+import '../../widgets/onboarding_carousel.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -132,6 +133,14 @@ class Settings extends StatelessWidget {
             subtitle: const Text('Control Your Data'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).pushNamed('/settings/privacy'),
+          ),
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('View Tutorial'),
+            subtitle: const Text('Learn how to use the app'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => OnboardingCarousel.show(context),
           ),
         ],
       ),

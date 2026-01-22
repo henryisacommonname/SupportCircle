@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../services/auth_service.dart';
+import '../../widgets/onboarding_carousel.dart';
 import 'home_tab.dart';
 import '../training/training_screen.dart';
 import '../support/support_screen.dart';
@@ -24,16 +24,28 @@ class _HomeShellState extends State<HomeShell> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    // Wait for first frame to complete
+    await Future.delayed(Duration.zero);
+    if (!mounted) return;
+
+    final hasSeen = await OnboardingCarousel.hasSeenOnboarding();
+    if (!hasSeen && mounted) {
+      await OnboardingCarousel.show(context);
+    }
+
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SupportCircle'),
-        actions: [
-          IconButton(
-            onPressed: () => AuthService().signOut(),
-            icon: const Icon(Icons.logout_rounded),
-          ),
-        ],
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: SafeArea(
@@ -48,8 +60,8 @@ class _HomeShellState extends State<HomeShell> {
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.handyman), label: 'Training'),
-            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Support'),
+            BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Training'),
+            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Places'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
