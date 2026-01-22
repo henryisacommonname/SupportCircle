@@ -69,13 +69,13 @@ class TrainingModule {
       );
 
   factory TrainingModule.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
+    final data = doc.data() ?? {};
     return TrainingModule(
       id: doc.id,
-      title: data['title'] as String,
-      subtitle: data['subtitle'] as String,
+      title: (data['title'] as String?) ?? 'Untitled Module',
+      subtitle: (data['subtitle'] as String?) ?? '',
       imageURL: _resolveImage(data['imageURL'] as String?),
-      minutes: (data['minutes'] as num).toInt(),
+      minutes: (data['minutes'] as num?)?.toInt() ?? 0,
       order: (data['order'] as num?)?.toInt() ?? 0,
       contentType: data['contentType'] as String?,
       contentURL: data['contentURL'] as String?,

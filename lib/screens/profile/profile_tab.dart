@@ -48,6 +48,8 @@ class ProfileTab extends StatelessWidget {
                 label: const Text('Sign Out'),
                 icon: const Icon(Icons.logout),
               ),
+              const SizedBox(height: 24),
+              const DeleteAccountCard(),
             ],
           );
         },
@@ -132,6 +134,153 @@ class Settings extends StatelessWidget {
             onTap: () => Navigator.of(context).pushNamed('/settings/privacy'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class DeleteAccountCard extends StatefulWidget {
+  const DeleteAccountCard({super.key});
+
+  @override
+  State<DeleteAccountCard> createState() => _DeleteAccountCardState();
+}
+
+class _DeleteAccountCardState extends State<DeleteAccountCard> {
+  bool _isDeleting = false;
+
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'Are you sure you want to delete your account? This action cannot be undone. '
+          'All your data including volunteer hours and progress will be permanently deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final uid = user.uid;
+
+      // Delete user's Firestore data
+      final firestore = FirebaseFirestore.instance;
+
+      // Delete ModuleProgress subcollection
+      final progressDocs = await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('ModuleProgress')
+          .get();
+      for (final doc in progressDocs.docs) {
+        await doc.reference.delete();
+      }
+
+      // Delete user document
+      await firestore.collection('users').doc(uid).delete();
+
+      // Delete Firebase Auth user
+      await user.delete();
+
+      // User will be automatically signed out and redirected by AuthGate
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      setState(() => _isDeleting = false);
+
+      String message = 'Failed to delete account';
+      if (e.code == 'requires-recent-login') {
+        message = 'Please sign out and sign in again, then try deleting your account';
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isDeleting = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.errorContainer.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: colorScheme.error),
+                const SizedBox(width: 8),
+                Text(
+                  'Danger Zone',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Permanently delete your account and all associated data.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isDeleting ? null : _deleteAccount,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: colorScheme.error,
+                  side: BorderSide(color: colorScheme.error),
+                ),
+                icon: _isDeleting
+                    ? SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.error,
+                        ),
+                      )
+                    : const Icon(Icons.delete_forever),
+                label: Text(_isDeleting ? 'Deleting...' : 'Delete Account'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

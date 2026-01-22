@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../services/maps_service.dart';
 
@@ -313,11 +314,10 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  _mapController?.animateCamera(CameraUpdate.newLatLngZoom(place.location, 15));
-                },
-                child: const Text('Get Directions'),
+              child: FilledButton.icon(
+                onPressed: () => _openDirections(place),
+                icon: const Icon(Icons.directions),
+                label: const Text('Get Directions'),
               ),
             ),
           ],
@@ -334,6 +334,32 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
 
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _openDirections(PlaceResult place) async {
+    final lat = place.location.latitude;
+    final lng = place.location.longitude;
+    final destination = Uri.encodeComponent(place.address ?? '$lat,$lng');
+
+    // Try Apple Maps first (iOS), fallback to Google Maps
+    final appleMapsUrl = Uri.parse(
+      'https://maps.apple.com/?daddr=$destination&dirflg=d',
+    );
+    final googleMapsUrl = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng',
+    );
+
+    try {
+      if (await canLaunchUrl(appleMapsUrl)) {
+        await launchUrl(appleMapsUrl, mode: LaunchMode.externalApplication);
+      } else if (await canLaunchUrl(googleMapsUrl)) {
+        await launchUrl(googleMapsUrl, mode: LaunchMode.externalApplication);
+      } else {
+        _showSnack('Could not open maps application');
+      }
+    } catch (e) {
+      _showSnack('Error opening directions: $e');
+    }
   }
 
   @override

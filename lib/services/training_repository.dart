@@ -35,7 +35,7 @@ class TrainingRepository {
       .map(
         (snap) => {
           for (final doc in snap.docs)
-            doc.id: statusFromString(doc.data()['status'] as String),
+            doc.id: statusFromString(doc.data()['status'] as String?),
         },
       );
 
