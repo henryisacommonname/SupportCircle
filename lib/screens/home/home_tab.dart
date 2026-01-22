@@ -121,8 +121,8 @@ class QuickActionsRow extends StatelessWidget {
         Expanded(
           child: QuickActionsCard(
             title: 'AI Assistant',
-            subtitle: 'get real-time help',
-            icon: Icons.smart_toy_outlined,
+            subtitle: 'Get real-time help',
+            icon: Icons.psychology_outlined,
             route: '/assistant',
             color: Colors.white,
           ),
@@ -130,11 +130,10 @@ class QuickActionsRow extends StatelessWidget {
         SizedBox(width: 12),
         Expanded(
           child: QuickActionsCard(
-            title: 'Emergency',
-            subtitle: 'Quick help access',
-            icon: Icons.call,
-            route: '/emergency',
-            emphasized: true,
+            title: 'Log Hours',
+            subtitle: 'Track volunteer time',
+            icon: Icons.timer_outlined,
+            route: '/time-tracking',
           ),
         ),
       ],

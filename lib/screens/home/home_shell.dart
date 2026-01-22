@@ -38,15 +38,12 @@ class _HomeShellState extends State<HomeShell> {
     if (!hasSeen && mounted) {
       await OnboardingCarousel.show(context);
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SupportCircle'),
-      ),
+      appBar: AppBar(title: const Text('SupportCircle')),
       body: _pages[_currentIndex],
       bottomNavigationBar: SafeArea(
         top: false,
@@ -60,8 +57,11 @@ class _HomeShellState extends State<HomeShell> {
           },
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-            BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Training'),
-            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Places'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              label: 'Training',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Support'),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
           ],
         ),
