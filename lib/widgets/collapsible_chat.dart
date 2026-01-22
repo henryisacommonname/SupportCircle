@@ -258,7 +258,7 @@ class _CollapsibleChatState extends State<CollapsibleChat>
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                Icons.auto_awesome,
+                Icons.psychology,
                 size: 20,
                 color: theme.colorScheme.onPrimaryContainer,
               ),
@@ -333,7 +333,7 @@ class _CollapsibleChatState extends State<CollapsibleChat>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.auto_awesome,
+              Icons.psychology,
               size: 20,
               color: theme.colorScheme.primary,
             ),
