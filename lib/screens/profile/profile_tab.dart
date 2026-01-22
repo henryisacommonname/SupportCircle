@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../app.dart';
+import '../../config/app_themes.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/onboarding_carousel.dart';
 
@@ -119,6 +121,20 @@ class Settings extends StatelessWidget {
       elevation: 0,
       child: Column(
         children: [
+          ListenableBuilder(
+            listenable: themeService,
+            builder: (context, _) {
+              final currentTheme = themeService.currentTheme;
+              return ListTile(
+                leading: Icon(currentTheme.icon),
+                title: const Text('App Theme'),
+                subtitle: Text(currentTheme.name),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _showThemeSelector(context),
+              );
+            },
+          ),
+          const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.notifications),
             title: const Text('Notifications'),
@@ -141,6 +157,161 @@ class Settings extends StatelessWidget {
             subtitle: const Text('Learn how to use the app'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => OnboardingCarousel.show(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showThemeSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => const ThemeSelectorSheet(),
+    );
+  }
+}
+
+class ThemeSelectorSheet extends StatelessWidget {
+  const ThemeSelectorSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return ListenableBuilder(
+      listenable: themeService,
+      builder: (context, _) {
+        final allThemes = themeService.allThemes;
+        final currentThemeId = themeService.currentThemeId;
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.outline.withAlpha(77),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Choose Theme',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: allThemes.length,
+                  itemBuilder: (context, index) {
+                    final theme = allThemes[index];
+                    final isSelected = theme.id == currentThemeId;
+                    final isUnlocked = themeService.isThemeUnlocked(theme.id);
+                    final hoursNeeded = themeService.hoursToUnlock(theme.id);
+
+                    return ListTile(
+                      leading: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: theme.primary,
+                          borderRadius: BorderRadius.circular(12),
+                          border: isSelected
+                              ? Border.all(color: colorScheme.primary, width: 3)
+                              : null,
+                        ),
+                        child: Icon(
+                          theme.icon,
+                          color: Colors.white,
+                        ),
+                      ),
+                      title: Row(
+                        children: [
+                          Text(theme.name),
+                          if (isSelected) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.check_circle,
+                              size: 18,
+                              color: colorScheme.primary,
+                            ),
+                          ],
+                          if (!isUnlocked && hoursNeeded != null) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.lock, size: 12),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$hoursNeeded hrs',
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      subtitle: Text(theme.description),
+                      trailing: _buildColorPreview(theme),
+                      onTap: isUnlocked
+                          ? () {
+                              themeService.setTheme(theme.id);
+                              Navigator.pop(context);
+                            }
+                          : null,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildColorPreview(AppThemeConfig theme) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _colorDot(theme.primary),
+        const SizedBox(width: 4),
+        _colorDot(theme.secondary),
+        const SizedBox(width: 4),
+        _colorDot(theme.tertiary),
+      ],
+    );
+  }
+
+  Widget _colorDot(Color color) {
+    return Container(
+      width: 16,
+      height: 16,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(26),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
           ),
         ],
       ),

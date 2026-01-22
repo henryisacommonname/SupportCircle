@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
+/// Legacy AppTheme class for backwards compatibility.
+/// New code should use AppThemes and AppThemeBuilder from app_themes.dart.
+///
+/// @deprecated Use AppThemes instead for new theme definitions.
 class AppTheme {
   AppTheme._();
 
   // Brand colors - Blue/Purple/Royal Blue palette
+  // These are kept for backwards compatibility with existing code
   static const Color primaryColor = Color(0xFF4169E1); // Royal Blue
   static const Color secondaryColor = Color(0xFF7C4DFF); // Purple accent
   static const Color tertiaryColor = Color(0xFF536DFE); // Indigo accent
