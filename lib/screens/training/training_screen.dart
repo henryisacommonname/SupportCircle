@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../config/theme.dart';
 import '../../models/training_module.dart';
 import '../../services/training_repository.dart';
 import 'module_player.dart';
@@ -115,19 +118,64 @@ class _TrainingScreenState extends State<TrainingScreen> {
   }
 }
 
-class _ModuleImagePlaceholder extends StatelessWidget {
+class _ModuleImagePlaceholder extends StatefulWidget {
   const _ModuleImagePlaceholder();
 
   @override
+  State<_ModuleImagePlaceholder> createState() => _ModuleImagePlaceholderState();
+}
+
+class _ModuleImagePlaceholderState extends State<_ModuleImagePlaceholder> {
+  late Color _backgroundColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _backgroundColor = _randomThemeColor();
+  }
+
+  Color _randomThemeColor() {
+    final colors = [
+      AppTheme.primaryColor,
+      AppTheme.secondaryColor,
+      AppTheme.tertiaryColor,
+      AppTheme.success,
+      AppTheme.warning,
+      AppTheme.info,
+      AppTheme.primaryColor.withAlpha(200),
+      AppTheme.secondaryColor.withAlpha(200),
+      const Color(0xFF536DFE), // Indigo variant
+      const Color(0xFF6A5ACD), // Slate blue
+      const Color(0xFF4169E1), // Royal blue (slightly different shade)
+    ];
+    return colors[Random().nextInt(colors.length)];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Container(
-      color: scheme.surfaceContainerHighest,
+      color: _backgroundColor,
       child: Center(
-        child: Icon(
-          Icons.image_not_supported_outlined,
-          size: 42,
-          color: scheme.onSurfaceVariant.withAlpha(178),
+        child: Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(51),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              'assets/SupportCircleCropped.png',
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
       ),
     );

@@ -157,6 +157,7 @@ class DeleteAccountCard extends StatefulWidget {
 
 class _DeleteAccountCardState extends State<DeleteAccountCard> {
   bool _isDeleting = false;
+  bool _isExpanded = false;
 
   Future<void> _deleteAccount() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -242,54 +243,85 @@ class _DeleteAccountCardState extends State<DeleteAccountCard> {
 
     return Card(
       elevation: 0,
-      color: colorScheme.errorContainer.withValues(alpha: 0.3),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, color: colorScheme.error),
-                const SizedBox(width: 8),
-                Text(
-                  'Danger Zone',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Permanently delete your account and all associated data.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _isDeleting ? null : _deleteAccount,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: colorScheme.error,
-                  side: BorderSide(color: colorScheme.error),
-                ),
-                icon: _isDeleting
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: colorScheme.error,
-                        ),
-                      )
-                    : const Icon(Icons.delete_forever),
-                label: Text(_isDeleting ? 'Deleting...' : 'Delete Account'),
+      color: _isExpanded
+          ? colorScheme.errorContainer.withAlpha(77)
+          : colorScheme.surfaceContainerHighest.withAlpha(128),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _isExpanded = !_isExpanded),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    color: _isExpanded ? colorScheme.error : colorScheme.outline,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Danger Zone',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: _isExpanded ? colorScheme.error : colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    turns: _isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: _isExpanded ? colorScheme.error : colorScheme.outline,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Permanently delete your account and all associated data.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _isDeleting ? null : _deleteAccount,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.error,
+                        side: BorderSide(color: colorScheme.error),
+                      ),
+                      icon: _isDeleting
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.error,
+                              ),
+                            )
+                          : const Icon(Icons.delete_forever),
+                      label: Text(_isDeleting ? 'Deleting...' : 'Delete Account'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState:
+                _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
       ),
     );
   }

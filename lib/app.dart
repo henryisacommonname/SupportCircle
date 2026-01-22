@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'config/routes.dart';
 import 'config/theme.dart';
 import 'screens/auth/auth_gate.dart';
+import 'screens/time_tracking/time_tracking_screen.dart';
 import 'services/chat_api_service.dart';
 import 'widgets/collapsible_chat.dart';
 import 'widgets/onboarding_carousel.dart';
@@ -39,14 +40,22 @@ class SupportCircleApp extends StatelessWidget {
                   if (authSnapshot.data == null) {
                     return const SizedBox.shrink();
                   }
-                  // Hide during onboarding
+                  // Hide during onboarding or when add entry sheet is open
                   return ValueListenableBuilder<bool>(
                     valueListenable: isOnboardingVisible,
-                    builder: (context, isOnboarding, child) {
+                    builder: (context, isOnboarding, _) {
                       if (isOnboarding) {
                         return const SizedBox.shrink();
                       }
-                      return CollapsibleChat(api: _chatApi);
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: isAddEntrySheetOpen,
+                        builder: (context, isSheetOpen, _) {
+                          if (isSheetOpen) {
+                            return const SizedBox.shrink();
+                          }
+                          return CollapsibleChat(api: _chatApi);
+                        },
+                      );
                     },
                   );
                 },

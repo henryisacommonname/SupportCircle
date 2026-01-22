@@ -226,23 +226,83 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
     return 'Status unknown';
   }
 
+  ({Color bg, Color text}) _tagColors(String type) {
+    final t = type.toLowerCase();
+
+    // Health-related
+    if (t.contains('health') || t.contains('hospital') || t.contains('doctor') ||
+        t.contains('pharmacy') || t.contains('medical') || t.contains('clinic')) {
+      return (bg: Colors.red.shade100, text: Colors.red.shade900);
+    }
+
+    // Food-related
+    if (t.contains('food') || t.contains('meal') || t.contains('restaurant') ||
+        t.contains('grocery') || t.contains('bakery') || t.contains('cafe')) {
+      return (bg: Colors.orange.shade100, text: Colors.orange.shade900);
+    }
+
+    // Education-related
+    if (t.contains('school') || t.contains('education') || t.contains('university') ||
+        t.contains('library') || t.contains('tutor') || t.contains('learning')) {
+      return (bg: Colors.purple.shade100, text: Colors.purple.shade900);
+    }
+
+    // Charity/nonprofit
+    if (t.contains('charity') || t.contains('nonprofit') || t.contains('donation') ||
+        t.contains('volunteer') || t.contains('foundation')) {
+      return (bg: Colors.green.shade100, text: Colors.green.shade900);
+    }
+
+    // Religious/church
+    if (t.contains('church') || t.contains('mosque') || t.contains('synagogue') ||
+        t.contains('temple') || t.contains('religious') || t.contains('worship')) {
+      return (bg: Colors.indigo.shade100, text: Colors.indigo.shade900);
+    }
+
+    // Social services
+    if (t.contains('social') || t.contains('shelter') || t.contains('housing') ||
+        t.contains('welfare') || t.contains('assistance')) {
+      return (bg: Colors.teal.shade100, text: Colors.teal.shade900);
+    }
+
+    // Environment/nature
+    if (t.contains('park') || t.contains('garden') || t.contains('environment') ||
+        t.contains('nature') || t.contains('conservation')) {
+      return (bg: Colors.lightGreen.shade100, text: Colors.lightGreen.shade900);
+    }
+
+    // Default blue
+    return (bg: Colors.blue.shade100, text: Colors.blue.shade900);
+  }
+
   List<Widget> _buildChips(PlaceResult place) {
-    const ignored = {'point_of_interest', 'establishment', 'premise', 'food'};
+    const ignored = {'point_of_interest', 'establishment', 'premise'};
     final tags = place.types.where((t) => !ignored.contains(t)).take(3).map((type) {
       final label = type.replaceAll('_', ' ');
+      final colors = _tagColors(type);
       return Chip(
-        label: Text(label),
+        label: Text(
+          label,
+          style: TextStyle(color: colors.text, fontSize: 12),
+        ),
+        backgroundColor: colors.bg,
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.symmetric(horizontal: 6),
+        side: BorderSide.none,
       );
     }).toList();
 
     if (tags.isEmpty) {
       return [
         Chip(
-          label: Text('Community service', style: TextStyle(color: Colors.blue.shade900)),
+          label: Text(
+            'Community service',
+            style: TextStyle(color: Colors.blue.shade900, fontSize: 12),
+          ),
+          backgroundColor: Colors.blue.shade100,
           visualDensity: VisualDensity.compact,
           padding: const EdgeInsets.symmetric(horizontal: 6),
+          side: BorderSide.none,
         ),
       ];
     }

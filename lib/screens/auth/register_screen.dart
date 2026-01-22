@@ -118,10 +118,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 32),
-                Icon(
-                  Icons.volunteer_activism,
-                  size: 64,
-                  color: Theme.of(context).colorScheme.primary,
+                Image.asset(
+                  'assets/SupportCircle.png',
+                  width: 100,
+                  height: 100,
                 ),
                 const SizedBox(height: 16),
                 Text(
