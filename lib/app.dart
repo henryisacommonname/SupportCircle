@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'config/app_themes.dart';
 import 'config/routes.dart';
 import 'screens/auth/auth_gate.dart';
+import 'screens/profile/profile_tab.dart';
 import 'screens/time_tracking/time_tracking_screen.dart';
 import 'services/chat_api_service.dart';
 import 'services/theme_service.dart';
@@ -80,7 +81,15 @@ class SupportCircleApp extends StatelessWidget {
                               if (isSheetOpen) {
                                 return const SizedBox.shrink();
                               }
-                              return CollapsibleChat(api: _chatApi);
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: isThemeSelectorOpen,
+                                builder: (context, isThemeOpen, _) {
+                                  if (isThemeOpen) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return CollapsibleChat(api: _chatApi);
+                                },
+                              );
                             },
                           );
                         },

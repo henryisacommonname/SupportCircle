@@ -7,6 +7,10 @@ import '../../config/app_themes.dart';
 import '../../services/auth_service.dart';
 import '../../widgets/onboarding_carousel.dart';
 
+/// Global notifier to track if theme selector sheet is open
+/// Used to hide AI FAB when the sheet is displayed
+final ValueNotifier<bool> isThemeSelectorOpen = ValueNotifier(false);
+
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
 
@@ -164,10 +168,13 @@ class Settings extends StatelessWidget {
   }
 
   void _showThemeSelector(BuildContext context) {
+    isThemeSelectorOpen.value = true;
     showModalBottomSheet(
       context: context,
       builder: (context) => const ThemeSelectorSheet(),
-    );
+    ).then((_) {
+      isThemeSelectorOpen.value = false;
+    });
   }
 }
 

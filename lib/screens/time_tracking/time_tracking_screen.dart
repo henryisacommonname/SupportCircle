@@ -34,20 +34,33 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Service Hours')),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showAddLogSheet(
+          context,
+          uid,
+          _selectedDay ?? DateTime.now(),
+        ),
+        icon: const Icon(Icons.add),
+        label: const Text('Log Hours'),
+      ),
       body: StreamBuilder<List<ServiceLog>>(
         stream: _repo.serviceLogs(uid),
         builder: (context, logsSnap) {
-          final logs = logsSnap.data ?? [];
-          final logsByDay = _groupLogsByDay(logs);
-          final totalHours = logs.fold<double>(0, (sum, log) => sum + log.hours);
+          final allLogs = logsSnap.data ?? [];
+          final logsByDay = _groupLogsByDay(allLogs);
+          final totalHours = allLogs.fold<double>(0, (sum, log) => sum + log.hours);
+
+          final displayLogs = _selectedDay != null
+              ? allLogs.where((log) => isSameDay(log.date, _selectedDay)).toList()
+              : allLogs;
 
           return Column(
             children: [
-              _buildSummaryCard(scheme, totalHours, logs.length),
+              _buildSummaryCard(scheme, totalHours, allLogs.length),
               _buildCalendar(scheme, logsByDay),
               const Divider(height: 1),
               Expanded(
-                child: _buildLogsList(uid, logs, scheme),
+                child: _buildLogsList(uid, displayLogs, scheme),
               ),
             ],
           );
@@ -149,7 +162,6 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
           _selectedDay = selectedDay;
           _focusedDay = focusedDay;
         });
-        _showAddLogSheet(context, FirebaseAuth.instance.currentUser!.uid, selectedDay);
       },
       onPageChanged: (focusedDay) {
         _focusedDay = focusedDay;
@@ -170,12 +182,14 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No service hours logged yet',
+              _selectedDay != null
+                  ? 'No entries for this date'
+                  : 'No service hours logged yet',
               style: TextStyle(color: scheme.outline),
             ),
             const SizedBox(height: 8),
             Text(
-              'Tap a day on the calendar to log hours',
+              'Tap the button below to log hours',
               style: TextStyle(color: scheme.outline, fontSize: 12),
             ),
           ],
