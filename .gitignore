@@ -46,8 +46,12 @@ app.*.map.json
 
 # Local secrets (do not commit)
 android/local.properties
+android/app/google-services.json
+ios/GoogleService-Info.plist
 ios/Runner/MapsKeys.xcconfig
 lib/Core/Services/google_maps_config.dart
 
 # Claude Code
 .claude/
+android/key.properties
+*.jks

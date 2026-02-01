@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "494834619390",
-    "project_id": "draft1-b8d31",
-    "storage_bucket": "draft1-b8d31.firebasestorage.app"
+    "project_number": "YOUR_PROJECT_NUMBER",
+    "project_id": "YOUR_PROJECT_ID",
+    "storage_bucket": "YOUR_PROJECT_ID.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:494834619390:android:ee1411e65a9c8788e326af",
+        "mobilesdk_app_id": "YOUR_MOBILE_SDK_APP_ID",
         "android_client_info": {
-          "package_name": "com.example.draft_1"
+          "package_name": "com.supportcircle.app"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCT4tlPBOqyPpKpMH4lgJKf1-G105EHXzk"
+          "current_key": "YOUR_FIREBASE_API_KEY"
         }
       ],
       "services": {
