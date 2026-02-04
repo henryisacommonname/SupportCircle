@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/app_resource.dart';
 import '../../services/resource_repository.dart';
+import '../../widgets/collapsible_chat.dart';
 import '../resources/resources_screen.dart';
 
 class HomeTab extends StatelessWidget {
@@ -116,19 +117,22 @@ class QuickActionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       children: [
         Expanded(
           child: QuickActionsCard(
             title: 'AI Assistant',
             subtitle: 'Get real-time help',
             icon: Icons.psychology_outlined,
-            route: '/assistant',
             color: Colors.white,
+            onTap: () {
+              // Trigger the AI chat FAB to open
+              shouldOpenAiChat.value = true;
+            },
           ),
         ),
-        SizedBox(width: 12),
-        Expanded(
+        const SizedBox(width: 12),
+        const Expanded(
           child: QuickActionsCard(
             title: 'Log Hours',
             subtitle: 'Track volunteer time',
@@ -146,7 +150,8 @@ class QuickActionsCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
-  final String route;
+  final String? route;
+  final VoidCallback? onTap;
   final bool emphasized;
 
   const QuickActionsCard({
@@ -154,10 +159,11 @@ class QuickActionsCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.icon,
-    required this.route,
+    this.route,
+    this.onTap,
     this.emphasized = false,
     this.color,
-  });
+  }) : assert(route != null || onTap != null, 'Either route or onTap must be provided');
 
   @override
   Widget build(BuildContext context) {
@@ -170,7 +176,7 @@ class QuickActionsCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => Navigator.of(context).pushNamed(route),
+        onTap: onTap ?? () => Navigator.of(context).pushNamed(route!),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(

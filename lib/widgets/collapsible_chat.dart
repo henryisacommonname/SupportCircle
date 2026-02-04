@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 
 import '../services/chat_api_service.dart';
 
+/// Global notifier to trigger opening the AI chat from anywhere in the app
+/// Set to true to open the chat, the chat will reset it to false when opened
+final ValueNotifier<bool> shouldOpenAiChat = ValueNotifier(false);
+
 class CollapsibleChat extends StatefulWidget {
   final ChatApiService api;
 
@@ -45,10 +49,22 @@ class _CollapsibleChatState extends State<CollapsibleChat>
       parent: _animationController,
       curve: Curves.easeOut,
     );
+
+    // Listen for external trigger to open chat (e.g., from AI card on home screen)
+    shouldOpenAiChat.addListener(_onExternalOpenRequest);
+  }
+
+  void _onExternalOpenRequest() {
+    if (shouldOpenAiChat.value && !_isOpen) {
+      _togglePanel();
+      // Reset the notifier so it can be triggered again
+      shouldOpenAiChat.value = false;
+    }
   }
 
   @override
   void dispose() {
+    shouldOpenAiChat.removeListener(_onExternalOpenRequest);
     _warmupTimer?.cancel();
     _controller.dispose();
     _scrollController.dispose();
