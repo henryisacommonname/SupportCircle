@@ -49,5 +49,7 @@
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>SupportCircle uses your location to surface nearby community service opportunities.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>SupportCircle uses your location to surface nearby community service opportunities.</string>
 </dict>
 </plist>
