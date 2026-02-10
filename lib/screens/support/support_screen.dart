@@ -557,11 +557,6 @@ class _LocalResourceCardState extends State<LocalResourceCard> {
                   label: Text(buttonLabel),
                 ),
                 const SizedBox(width: 12),
-                if (_userPosition != null)
-                  Text(
-                    'Lat: ${_userPosition!.latitude.toStringAsFixed(3)}, '
-                    'Lng: ${_userPosition!.longitude.toStringAsFixed(3)}',
-                  ),
               ],
             ),
             const SizedBox(height: 12),

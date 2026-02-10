@@ -1,0 +1,8 @@
+// Copy this file to api_keys.dart and add your keys
+// api_keys.dart is gitignored and will not be committed
+
+class ApiKeys {
+  ApiKeys._();
+
+  static const googleMapsApiKey = 'YOUR_GOOGLE_MAPS_API_KEY_HERE';
+}

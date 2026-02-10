@@ -5,12 +5,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
+import '../config/api_keys.dart';
+
 class MapsService {
   final String apiKey;
 
   MapsService({String? apiKeyOverride})
-      : apiKey = apiKeyOverride ??
-            const String.fromEnvironment('GOOGLE_MAPS_API_KEY');
+      : apiKey = apiKeyOverride ?? ApiKeys.googleMapsApiKey;
 
   Future<List<PlaceResult>> findCommunityEvents(Position userPosition) async {
     if (apiKey.isEmpty) {
