@@ -5,16 +5,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
-const String _googleMapsApiKey = 'AIzaSyCjgCG0bKWiNFAcPX8PquLnZ16l7UEl77g';
-
 class MapsService {
   final String apiKey;
 
   MapsService({String? apiKeyOverride})
       : apiKey = apiKeyOverride ??
-            _googleMapsApiKey._ifEmpty(
-              const String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
-            );
+            const String.fromEnvironment('GOOGLE_MAPS_API_KEY');
 
   Future<List<PlaceResult>> findCommunityEvents(Position userPosition) async {
     if (apiKey.isEmpty) {
@@ -62,10 +58,6 @@ class MapsService {
     final results = data['results'] as List<dynamic>? ?? <dynamic>[];
     return results.map((raw) => PlaceResult.fromJson(raw)).toList();
   }
-}
-
-extension on String {
-  String _ifEmpty(String fallback) => isEmpty ? fallback : this;
 }
 
 class PlaceResult {
