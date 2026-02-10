@@ -1,16 +1,38 @@
-# draft_1
+# SupportCircle
 
-A new Flutter project.
+A Flutter mobile app for volunteer coordination, training, and community service discovery.
 
-## Getting Started
+## Setup Instructions
 
-This project is a starting point for a Flutter application.
+### Google Maps API Keys
 
-A few resources to get you started if this is your first Flutter project:
+Add your Maps API keys (not committed to git for security):
+- **iOS**: `ios/Runner/MapsKeys.xcconfig` - Set `GOOGLE_MAPS_API_KEY`
+- **Android**: `android/local.properties` - Set `GOOGLE_MAPS_API_KEY`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Both keys need bundle ID `com.supportcircle.app` restrictions.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Firebase Configuration
+
+Firebase config files are NOT committed to git:
+- `ios/GoogleService-Info.plist`
+- `android/app/google-services.json`
+
+### Build & Run
+
+```bash
+flutter pub get
+flutter run                    # Debug mode
+flutter run --release         # Release mode
+flutter build ios --release   # Build iOS
+flutter build apk --release   # Build Android APK
+flutter build appbundle       # Build Android App Bundle
+```
+
+## Tech Stack
+
+- **Framework**: Flutter 3.8+
+- **Backend**: Firebase (Auth, Firestore)
+- **Maps**: Google Maps Flutter
+- **Video**: YouTube Player
+- **Architecture**: Repository pattern with service layer
