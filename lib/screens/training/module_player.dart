@@ -8,7 +8,13 @@ import '../../widgets/youtube_player.dart';
 
 class ModulePlayerScreen extends StatefulWidget {
   final TrainingModule module;
-  const ModulePlayerScreen({super.key, required this.module});
+  final bool canTrackProgress;
+
+  const ModulePlayerScreen({
+    super.key,
+    required this.module,
+    required this.canTrackProgress,
+  });
 
   @override
   State<ModulePlayerScreen> createState() => _ModulePlayerScreenState();
@@ -42,6 +48,8 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
   }
 
   Future<void> _markComplete() async {
+    if (!widget.canTrackProgress) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -86,7 +94,10 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
           if (_hasYoutubeURL)
             YouTubePlayerWidget(youtubeURL: module.youtubeURL)
           else if (_hasVideoURL)
-            _VideoSection(controller: _videoController, loading: _isLoadingVideo)
+            _VideoSection(
+              controller: _videoController,
+              loading: _isLoadingVideo,
+            )
           else
             _ArticleSection(subtitle: module.subtitle, body: module.body),
 
@@ -98,17 +109,24 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
           ],
 
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: _isMarking ? null : _markComplete,
-            icon: _isMarking
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check_circle_outline),
-            label: Text(_isMarking ? 'Marking...' : 'Mark Complete'),
-          ),
+          if (widget.canTrackProgress)
+            FilledButton.icon(
+              onPressed: _isMarking ? null : _markComplete,
+              icon: _isMarking
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_circle_outline),
+              label: Text(_isMarking ? 'Marking...' : 'Mark Complete'),
+            )
+          else
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).pushNamed('/login'),
+              icon: const Icon(Icons.login),
+              label: const Text('Sign In to Track Completion'),
+            ),
           const SizedBox(height: 8),
           Text(
             'Takes ~${module.minutes} min',
@@ -120,23 +138,23 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
       ),
       floatingActionButton:
           (!_hasYoutubeURL && _hasVideoURL && _videoController != null)
-              ? FloatingActionButton(
-                  onPressed: () {
-                    final v = _videoController!;
-                    if (v.value.isPlaying) {
-                      v.pause();
-                    } else {
-                      v.play();
-                    }
-                    setState(() {});
-                  },
-                  child: Icon(
-                    _videoController!.value.isPlaying
-                        ? Icons.pause
-                        : Icons.play_arrow,
-                  ),
-                )
-              : null,
+          ? FloatingActionButton(
+              onPressed: () {
+                final v = _videoController!;
+                if (v.value.isPlaying) {
+                  v.pause();
+                } else {
+                  v.play();
+                }
+                setState(() {});
+              },
+              child: Icon(
+                _videoController!.value.isPlaying
+                    ? Icons.pause
+                    : Icons.play_arrow,
+              ),
+            )
+          : null,
     );
   }
 }

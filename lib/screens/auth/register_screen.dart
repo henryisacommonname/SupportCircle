@@ -74,8 +74,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     try {
       await _authService.registerWithEmail(email, password);
-      // AuthGate will auto-redirect to home
-      // Onboarding will be shown via home_shell checking hasSeenOnboarding
+      if (!mounted) return;
+      Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
     } catch (e) {
       setState(() {
         _errorMessage = _parseAuthError(e.toString());
@@ -133,8 +133,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Text(
                   'Create an account to start volunteering',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 32),
@@ -184,7 +184,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             : Icons.visibility_off_outlined,
                       ),
                       onPressed: () => setState(
-                          () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
                     ),
                   ),
                   obscureText: _obscureConfirmPassword,
@@ -198,10 +200,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .errorContainer
-                          .withValues(alpha: 0.5),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer.withValues(alpha: 0.5),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(

@@ -18,10 +18,12 @@ class ProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const Center(child: Text('Not signed in'));
+      return const _GuestProfileView();
     }
 
-    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
 
     return SafeArea(
       child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -30,7 +32,8 @@ class ProfileTab extends StatelessWidget {
           if (snap.hasError) {
             return Center(child: Text('Error: ${snap.error}'));
           }
-          if (!snap.hasData || snap.connectionState == ConnectionState.waiting) {
+          if (!snap.hasData ||
+              snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -43,7 +46,9 @@ class ProfileTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               ProfileHeader(
-                displayName: displayName?.isNotEmpty == true ? displayName! : 'Volunteer',
+                displayName: displayName?.isNotEmpty == true
+                    ? displayName!
+                    : 'Volunteer',
                 pfpURL: (pfpURL?.isNotEmpty == true) ? pfpURL : null,
                 hours: (timeTracker is num) ? timeTracker.toDouble() : 0.0,
               ),
@@ -60,6 +65,57 @@ class ProfileTab extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _GuestProfileView extends StatelessWidget {
+  const _GuestProfileView();
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Use SupportCircle without an account',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'You can browse resources, explore training content, and find volunteer opportunities now. '
+                    'Sign in to save hours, track module progress, and personalize your profile.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton.icon(
+                    onPressed: () => Navigator.of(context).pushNamed('/login'),
+                    icon: const Icon(Icons.login),
+                    label: const Text('Sign In'),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () =>
+                        Navigator.of(context).pushNamed('/register'),
+                    icon: const Icon(Icons.person_add_alt_1),
+                    label: const Text('Create Account'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Settings(),
+        ],
       ),
     );
   }
@@ -98,7 +154,10 @@ class ProfileHeader extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(displayName, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    displayName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const SizedBox(height: 4),
                   Text('Hours volunteered: ${hours.toStringAsFixed(1)}'),
                 ],
@@ -144,7 +203,8 @@ class Settings extends StatelessWidget {
             title: const Text('Notifications'),
             subtitle: const Text('Manage Your Alerts'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).pushNamed('/settings/notifications'),
+            onTap: () =>
+                Navigator.of(context).pushNamed('/settings/notifications'),
           ),
           const Divider(height: 1),
           ListTile(
@@ -231,10 +291,7 @@ class ThemeSelectorSheet extends StatelessWidget {
                               ? Border.all(color: colorScheme.primary, width: 3)
                               : null,
                         ),
-                        child: Icon(
-                          theme.icon,
-                          color: Colors.white,
-                        ),
+                        child: Icon(theme.icon, color: Colors.white),
                       ),
                       title: Row(
                         children: [
@@ -399,7 +456,8 @@ class _DeleteAccountCardState extends State<DeleteAccountCard> {
 
       String message = 'Failed to delete account';
       if (e.code == 'requires-recent-login') {
-        message = 'Please sign out and sign in again, then try deleting your account';
+        message =
+            'Please sign out and sign in again, then try deleting your account';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -435,16 +493,20 @@ class _DeleteAccountCardState extends State<DeleteAccountCard> {
                 children: [
                   Icon(
                     Icons.warning_amber_rounded,
-                    color: _isExpanded ? colorScheme.error : colorScheme.outline,
+                    color: _isExpanded
+                        ? colorScheme.error
+                        : colorScheme.outline,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Danger Zone',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: _isExpanded ? colorScheme.error : colorScheme.onSurface,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        color: _isExpanded
+                            ? colorScheme.error
+                            : colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   AnimatedRotation(
@@ -452,7 +514,9 @@ class _DeleteAccountCardState extends State<DeleteAccountCard> {
                     duration: const Duration(milliseconds: 200),
                     child: Icon(
                       Icons.keyboard_arrow_down,
-                      color: _isExpanded ? colorScheme.error : colorScheme.outline,
+                      color: _isExpanded
+                          ? colorScheme.error
+                          : colorScheme.outline,
                     ),
                   ),
                 ],
@@ -489,14 +553,17 @@ class _DeleteAccountCardState extends State<DeleteAccountCard> {
                               ),
                             )
                           : const Icon(Icons.delete_forever),
-                      label: Text(_isDeleting ? 'Deleting...' : 'Delete Account'),
+                      label: Text(
+                        _isDeleting ? 'Deleting...' : 'Delete Account',
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            crossFadeState:
-                _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 200),
           ),
         ],

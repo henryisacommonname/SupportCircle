@@ -53,6 +53,30 @@ class TrainingModule {
 
   bool get hasImage => (imageURL ?? '').trim().isNotEmpty;
 
+  bool get hasDisplayContent {
+    final hasTitle = title.trim().isNotEmpty;
+    final hasSubtitle = subtitle.trim().isNotEmpty;
+    final hasBody = (body ?? '').trim().isNotEmpty;
+    final hasVideo =
+        (contentURL ?? '').trim().isNotEmpty ||
+        (youtubeURL ?? '').trim().isNotEmpty;
+    final hasPlaceholderCopy =
+        _containsPlaceholderText(title) ||
+        _containsPlaceholderText(subtitle) ||
+        _containsPlaceholderText(body ?? '');
+    return hasTitle &&
+        (hasSubtitle || hasBody || hasVideo) &&
+        !hasPlaceholderCopy;
+  }
+
+  static final RegExp _placeholderPattern = RegExp(
+    r'(^\s*title for)|(^\s*subtitle for)|\b(test|placeholder|lorem|ipsum|dummy|tbd)\b',
+    caseSensitive: false,
+  );
+
+  static bool _containsPlaceholderText(String value) =>
+      _placeholderPattern.hasMatch(value.trim());
+
   TrainingModule copyWith({ModuleStatus? status, String? youtubeURL}) =>
       TrainingModule(
         id: id,
@@ -70,10 +94,11 @@ class TrainingModule {
 
   factory TrainingModule.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
+    final title = (data['title'] as String?)?.trim() ?? '';
     return TrainingModule(
       id: doc.id,
-      title: (data['title'] as String?) ?? 'Untitled Module',
-      subtitle: (data['subtitle'] as String?) ?? '',
+      title: title,
+      subtitle: (data['subtitle'] as String?)?.trim() ?? '',
       imageURL: _resolveImage(data['imageURL'] as String?),
       minutes: (data['minutes'] as num?)?.toInt() ?? 0,
       order: (data['order'] as num?)?.toInt() ?? 0,

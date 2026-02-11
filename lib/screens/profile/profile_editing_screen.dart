@@ -34,15 +34,17 @@ class _ProfileEditingScreenState extends State<ProfileEditingScreen> {
     try {
       await AuthService().updateUserProfile(
         displayName: _displayNameCtrl.text.trim(),
-        photoURL: _pfpUrlCtrl.text.trim().isEmpty ? null : _pfpUrlCtrl.text.trim(),
+        photoURL: _pfpUrlCtrl.text.trim().isEmpty
+            ? null
+            : _pfpUrlCtrl.text.trim(),
       );
 
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Save failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -52,11 +54,41 @@ class _ProfileEditingScreenState extends State<ProfileEditingScreen> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      return const Scaffold(body: Center(child: Text('Not signed in')));
+      return Scaffold(
+        appBar: AppBar(title: const Text('Edit Profile')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.lock_outline, size: 56),
+                const SizedBox(height: 12),
+                Text(
+                  'Sign in to edit your profile',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Profile details are linked to your account and sync across devices.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pushNamed('/login'),
+                  child: const Text('Sign In'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
-    final userRef =
-        FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -108,10 +140,11 @@ class _ProfileEditingScreenState extends State<ProfileEditingScreen> {
                     child: CircleAvatar(
                       radius: 60,
                       backgroundColor: theme.colorScheme.primaryContainer,
-                      backgroundImage:
-                          hasPhoto ? NetworkImage(currentPhotoURL) : null,
+                      backgroundImage: hasPhoto
+                          ? NetworkImage(currentPhotoURL)
+                          : null,
                       onBackgroundImageError: hasPhoto
-                          ? (_, __) {} // Silently handle invalid URLs
+                          ? (exception, stackTrace) {}
                           : null,
                       child: hasPhoto
                           ? null

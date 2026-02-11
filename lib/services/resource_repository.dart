@@ -1,13 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+import '../data/default_content.dart';
 import '../models/app_resource.dart';
 
 class ResourceRepository {
   final FirebaseFirestore _firestore;
 
   ResourceRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   Stream<List<AppResource>> featuredResources({int limit = 3}) =>
       _queryResources(limit: limit);
@@ -34,13 +35,21 @@ class ResourceRepository {
               '[Resources] count=${snap.docs.length} cache=${snap.metadata.isFromCache}',
             );
           }
-          return snap.docs
+          final resources = snap.docs
               .map(
                 (doc) => AppResource.fromDoc(
                   doc as DocumentSnapshot<Map<String, dynamic>>,
                 ),
               )
+              .where((resource) => resource.hasDisplayContent)
               .toList();
+          if (resources.length < 2) {
+            if (limit == null) {
+              return defaultResources;
+            }
+            return defaultResources.take(limit).toList();
+          }
+          return resources;
         })
         .handleError((error) {
           if (kDebugMode) {

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'config/app_themes.dart';
@@ -43,8 +42,8 @@ class SupportCircleApp extends StatelessWidget {
         final themeMode = currentTheme.id == 'light'
             ? ThemeMode.light
             : currentTheme.id == 'dark'
-                ? ThemeMode.dark
-                : (currentTheme.isDark ? ThemeMode.dark : ThemeMode.light);
+            ? ThemeMode.dark
+            : (currentTheme.isDark ? ThemeMode.dark : ThemeMode.light);
 
         return MaterialApp(
           title: 'SupportCircle',
@@ -61,35 +60,25 @@ class SupportCircleApp extends StatelessWidget {
               initialEntries: [
                 OverlayEntry(builder: (_) => child),
                 OverlayEntry(
-                  builder: (_) => StreamBuilder<User?>(
-                    stream: FirebaseAuth.instance.authStateChanges(),
-                    builder: (context, authSnapshot) {
-                      // Only show chat FAB when user is authenticated
-                      if (authSnapshot.data == null) {
+                  builder: (_) => ValueListenableBuilder<bool>(
+                    valueListenable: isOnboardingVisible,
+                    builder: (context, isOnboarding, _) {
+                      if (isOnboarding) {
                         return const SizedBox.shrink();
                       }
-                      // Hide during onboarding or when add entry sheet is open
                       return ValueListenableBuilder<bool>(
-                        valueListenable: isOnboardingVisible,
-                        builder: (context, isOnboarding, _) {
-                          if (isOnboarding) {
+                        valueListenable: isAddEntrySheetOpen,
+                        builder: (context, isSheetOpen, _) {
+                          if (isSheetOpen) {
                             return const SizedBox.shrink();
                           }
                           return ValueListenableBuilder<bool>(
-                            valueListenable: isAddEntrySheetOpen,
-                            builder: (context, isSheetOpen, _) {
-                              if (isSheetOpen) {
+                            valueListenable: isThemeSelectorOpen,
+                            builder: (context, isThemeOpen, _) {
+                              if (isThemeOpen) {
                                 return const SizedBox.shrink();
                               }
-                              return ValueListenableBuilder<bool>(
-                                valueListenable: isThemeSelectorOpen,
-                                builder: (context, isThemeOpen, _) {
-                                  if (isThemeOpen) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return CollapsibleChat(api: _chatApi);
-                                },
-                              );
+                              return CollapsibleChat(api: _chatApi);
                             },
                           );
                         },

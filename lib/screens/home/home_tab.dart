@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/app_resource.dart';
 import '../../services/resource_repository.dart';
@@ -13,6 +14,8 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSignedIn = FirebaseAuth.instance.currentUser != null;
+
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.all(16),
@@ -56,7 +59,9 @@ class HomeTab extends StatelessWidget {
                 );
               }
               return Column(
-                children: resources.map((r) => ResourceCard(resource: r)).toList(),
+                children: resources
+                    .map((r) => ResourceCard(resource: r))
+                    .toList(),
               );
             },
           ),
@@ -66,15 +71,21 @@ class HomeTab extends StatelessWidget {
           ShortcutCard(
             icon: Icons.school_outlined,
             title: 'Resume Training',
-            subtitle: 'Jump back into the latest module',
+            subtitle: isSignedIn
+                ? 'Jump back into your latest module'
+                : 'Explore volunteer training modules',
             onTap: () => Navigator.of(context).pushNamed('/training'),
           ),
           const SizedBox(height: 8),
           ShortcutCard(
-            icon: Icons.edit,
-            title: 'Edit Profile',
-            subtitle: 'Update your info instantly',
-            onTap: () => Navigator.of(context).pushNamed('/profile/edit'),
+            icon: isSignedIn ? Icons.edit : Icons.login,
+            title: isSignedIn ? 'Edit Profile' : 'Sign In',
+            subtitle: isSignedIn
+                ? 'Update your profile details'
+                : 'Create an account to track progress',
+            onTap: () => Navigator.of(
+              context,
+            ).pushNamed(isSignedIn ? '/profile/edit' : '/login'),
           ),
         ],
       ),
@@ -163,7 +174,10 @@ class QuickActionsCard extends StatelessWidget {
     this.onTap,
     this.emphasized = false,
     this.color,
-  }) : assert(route != null || onTap != null, 'Either route or onTap must be provided');
+  }) : assert(
+         route != null || onTap != null,
+         'Either route or onTap must be provided',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -192,10 +206,7 @@ class QuickActionsCard extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.w700, color: fg),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(color: fg.withAlpha(178)),
-                    ),
+                    Text(subtitle, style: TextStyle(color: fg.withAlpha(178))),
                   ],
                 ),
               ),
@@ -215,10 +226,9 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: Theme.of(context)
-          .textTheme
-          .titleMedium
-          ?.copyWith(fontWeight: FontWeight.w700),
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
     );
   }
 }
@@ -310,10 +320,9 @@ class ResourceCard extends StatelessWidget {
       surfaceTintColor: Colors.transparent,
       child: ListTile(
         leading: Icon(resource.icon),
-        onTap: () => Navigator.of(context).pushNamed(
-          ResourcesScreen.routeName,
-          arguments: resource.id,
-        ),
+        onTap: () => Navigator.of(
+          context,
+        ).pushNamed(ResourcesScreen.routeName, arguments: resource.id),
         title: Text(
           resource.title,
           style: const TextStyle(fontWeight: FontWeight.w700),

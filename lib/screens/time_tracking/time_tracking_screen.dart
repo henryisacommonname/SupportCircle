@@ -26,7 +26,37 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return const Scaffold(body: Center(child: Text('Please sign in')));
+      return Scaffold(
+        appBar: AppBar(title: const Text('Service Hours')),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.history_toggle_off, size: 56),
+                const SizedBox(height: 12),
+                Text(
+                  'Sign in to track service hours',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Hour logs are account-based so your entries stay private and saved to your profile.',
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(context).pushNamed('/login'),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Sign In'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
     }
 
     final theme = Theme.of(context);
@@ -35,11 +65,8 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Service Hours')),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddLogSheet(
-          context,
-          uid,
-          _selectedDay ?? DateTime.now(),
-        ),
+        onPressed: () =>
+            _showAddLogSheet(context, uid, _selectedDay ?? DateTime.now()),
         icon: const Icon(Icons.add),
         label: const Text('Log Hours'),
       ),
@@ -48,10 +75,15 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
         builder: (context, logsSnap) {
           final allLogs = logsSnap.data ?? [];
           final logsByDay = _groupLogsByDay(allLogs);
-          final totalHours = allLogs.fold<double>(0, (sum, log) => sum + log.hours);
+          final totalHours = allLogs.fold<double>(
+            0,
+            (sum, log) => sum + log.hours,
+          );
 
           final displayLogs = _selectedDay != null
-              ? allLogs.where((log) => isSameDay(log.date, _selectedDay)).toList()
+              ? allLogs
+                    .where((log) => isSameDay(log.date, _selectedDay))
+                    .toList()
               : allLogs;
 
           return Column(
@@ -59,9 +91,7 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
               _buildSummaryCard(scheme, totalHours, allLogs.length),
               _buildCalendar(scheme, logsByDay),
               const Divider(height: 1),
-              Expanded(
-                child: _buildLogsList(uid, displayLogs, scheme),
-              ),
+              Expanded(child: _buildLogsList(uid, displayLogs, scheme)),
             ],
           );
         },
@@ -69,7 +99,11 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     );
   }
 
-  Widget _buildSummaryCard(ColorScheme scheme, double totalHours, int entryCount) {
+  Widget _buildSummaryCard(
+    ColorScheme scheme,
+    double totalHours,
+    int entryCount,
+  ) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
@@ -122,7 +156,10 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     );
   }
 
-  Widget _buildCalendar(ColorScheme scheme, Map<DateTime, List<ServiceLog>> logsByDay) {
+  Widget _buildCalendar(
+    ColorScheme scheme,
+    Map<DateTime, List<ServiceLog>> logsByDay,
+  ) {
     return TableCalendar<ServiceLog>(
       firstDay: DateTime.utc(2020, 1, 1),
       lastDay: DateTime.utc(2030, 12, 31),
@@ -212,11 +249,8 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
             child: Icon(Icons.delete, color: scheme.onError),
           ),
           confirmDismiss: (_) => _confirmDelete(context),
-          onDismissed: (_) => _repo.deleteLog(
-            userId: uid,
-            logId: log.id,
-            hours: log.hours,
-          ),
+          onDismissed: (_) =>
+              _repo.deleteLog(userId: uid, logId: log.id, hours: log.hours),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: scheme.secondaryContainer,
@@ -262,7 +296,9 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this service log entry?'),
+        content: const Text(
+          'Are you sure you want to delete this service log entry?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -278,7 +314,11 @@ class _TimeTrackingScreenState extends State<TimeTrackingScreen> {
     return result ?? false;
   }
 
-  void _showAddLogSheet(BuildContext context, String uid, DateTime? preselectedDate) {
+  void _showAddLogSheet(
+    BuildContext context,
+    String uid,
+    DateTime? preselectedDate,
+  ) {
     isAddEntrySheetOpen.value = true;
     showModalBottomSheet(
       context: context,
@@ -374,7 +414,9 @@ class _AddServiceLogSheetState extends State<AddServiceLogSheet> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _hoursController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 labelText: 'Hours',
                 prefixIcon: Icon(Icons.access_time),
@@ -454,9 +496,9 @@ class _AddServiceLogSheetState extends State<AddServiceLogSheet> {
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

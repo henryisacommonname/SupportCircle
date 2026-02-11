@@ -18,14 +18,32 @@ class AppResource {
     this.body,
   });
 
+  bool get hasDisplayContent {
+    final hasTitle = title.trim().isNotEmpty;
+    final hasBody = (body ?? '').trim().isNotEmpty;
+    final hasVideo = (youtubeURL ?? '').trim().isNotEmpty;
+    final hasPlaceholderCopy =
+        _containsPlaceholderText(title) ||
+        _containsPlaceholderText(subtitle) ||
+        _containsPlaceholderText(body ?? '');
+    return hasTitle && (hasBody || hasVideo) && !hasPlaceholderCopy;
+  }
+
+  static final RegExp _placeholderPattern = RegExp(
+    r'(^\s*title for)|(^\s*subtitle for)|\b(test|placeholder|lorem|ipsum|dummy|tbd)\b',
+    caseSensitive: false,
+  );
+
+  static bool _containsPlaceholderText(String value) =>
+      _placeholderPattern.hasMatch(value.trim());
+
   factory AppResource.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
+    final title = (data['title'] as String?)?.trim() ?? '';
     return AppResource(
       id: doc.id,
-      title: (data['title'] as String?)?.trim().isNotEmpty == true
-          ? (data['title'] as String)
-          : 'Untitled resource',
-      subtitle: data['subtitle'] as String? ?? '',
+      title: title,
+      subtitle: (data['subtitle'] as String?)?.trim() ?? '',
       youtubeURL: data['youtubeURL'] as String?,
       body: data['body'] as String?,
       icon: _iconFromName(data['icon'] as String?),

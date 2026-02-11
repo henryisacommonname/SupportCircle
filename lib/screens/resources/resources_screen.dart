@@ -31,7 +31,10 @@ class ResourcesScreen extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -49,14 +52,29 @@ class ResourcesScreen extends StatelessWidget {
                         StreamBuilder(
                           stream: repo.allResources(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
                               return const _ResourceSkeletonList();
                             }
                             if (snapshot.hasError) {
-                              return const Text('Unable to Access our Resources');
+                              return const Text(
+                                'Unable to Access our Resources',
+                              );
                             }
 
                             final resources = snapshot.data ?? [];
+                            if (resources.isEmpty) {
+                              return Card(
+                                elevation: 0,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Text(
+                                    'Resources are currently unavailable. Please check back soon.',
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                              );
+                            }
                             return Column(
                               children: [
                                 for (final res in resources) ...[
@@ -66,7 +84,9 @@ class ResourcesScreen extends StatelessWidget {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (_) => ResourcePlayerScreen(resource: res),
+                                          builder: (_) => ResourcePlayerScreen(
+                                            resource: res,
+                                          ),
                                         ),
                                       );
                                     },
@@ -137,7 +157,10 @@ class _ResourceCardState extends State<_ResourceCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _ResourceIcon(icon: widget.resource.icon, color: scheme.primary),
+                  _ResourceIcon(
+                    icon: widget.resource.icon,
+                    color: scheme.primary,
+                  ),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
